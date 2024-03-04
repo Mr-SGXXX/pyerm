@@ -10,7 +10,7 @@ setup(
     author_email='yx_shao@qq.com',
     description='This project is an experiment record manager for python based on SQLite DMS, which can help you efficiently save your experiment settings and results for latter analysis.',
     long_description=long_description,
-    url="https://github.com/Mr-SGXXX/Experiment-Record-Manager",
+    url="https://github.com/Mr-SGXXX/pyerm",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
