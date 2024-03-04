@@ -31,7 +31,7 @@ USER_HOME = os.path.expanduser('~')
 
 def export_xls(db_path:str, output_path:str):
     conn = sqlite3.connect(db_path)
-    table_names = pd.read_sql_query("SELECT name FROM sqlite_master WHERE type='table'", conn)
+    table_names = pd.read_sql_query("SELECT name FROM sqlite_master WHERE type IN ('table', 'view')", conn)
     writer = pd.ExcelWriter(output_path, engine='xlsxwriter')
     for table_name in table_names['name']:
         df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
