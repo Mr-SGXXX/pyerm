@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name='pyerm',
-    version='0.1.1',
+    version='0.1.2',
     author='Yuxuan Shao',
     author_email='yx_shao@qq.com',
     description='This project is an experiment record manager for python based on SQLite DMS, which can help you efficiently save your experiment settings and results for latter analysis.',
