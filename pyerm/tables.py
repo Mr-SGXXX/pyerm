@@ -20,12 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.1.0
+# Version: 0.1.1
 
 from PIL import Image
 from io import BytesIO
 from time import strftime, time
 import typing
+import traceback
 
 from .dbbase import Table, Database
 
@@ -33,25 +34,27 @@ class ExperimentTable(Table):
     def __init__(self, db: Database) -> None:
         columns = {
             'id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
-            'description': 'TEXT',
+            'description': 'TEXT DEFAULT NULL',
             'method': 'TEXT NOT NULL',
             'method_id': 'INTEGER NOT NULL', 
             'data': 'TEXT NOT NULL',
             'data_id': 'INTEGER NOT NULL',
             'task': 'TEXT NOT NULL',
             'tags': 'TEXT DEFAULT NULL', # 'tag1,tag2,tag3,...'
+            'experimenters': 'TEXT DEFAULT NULL', # 'experimenter1,experimenter2,experimenter3,...'
             'start_time': 'DATETIME',
             'end_time': 'DATETIME DEFAULT NULL',
             'useful_time_cost': 'REAL DEFAULT NULL',
             'total_time_cost': 'REAL AS (strftime(\"%s\", end_time) - strftime(\"%s\", start_time)) VIRTUAL',
             'status': 'TEXT CHECK(status IN (\"running\", \"finished\", \"failed\"))',
+            'failed_reason': 'TEXT DEFAULT NULL',
         }
         super().__init__(db, "experiment_list", columns)
 
-    def experiment_start(self, description:str, method:str, method_id:int, data:str, data_id, task:str, start_time:float=None, tags:str=None) -> int:
+    def experiment_start(self, description:str, method:str, method_id:int, data:str, data_id, task:str, start_time:float=None, tags:str=None, experimenters:str=None) -> int:
         if start_time is None:
             start_time = time()
-        return super().insert(description=description, method=method, method_id=method_id, data=data, data_id=data_id, task=task, tags=tags, start_time=strftime(start_time), status='running')
+        return super().insert(description=description, method=method, method_id=method_id, data=data, data_id=data_id, task=task, tags=tags, experimenters=experimenters, start_time=strftime(start_time), status='running')
 
     def experiment_over(self, experiment_id:int, end_time:float=None, useful_time_cost:float=None) -> None:
         if end_time is None:
@@ -61,7 +64,8 @@ class ExperimentTable(Table):
     def experiment_failed(self, experiment_id:int, end_time:float=None) -> None:
         if end_time is None:
             end_time = time()
-        super().update(f"id={experiment_id}", end_time=strftime(end_time), status='failed')
+        error_info = traceback.format_exc()
+        super().update(f"id={experiment_id}", end_time=strftime(end_time), status='failed', failed_reason=error_info)
 
     def get_experiment(self, experiment_id:int) -> dict:
         return super().select(where=f"id={experiment_id}")[0]
@@ -82,13 +86,13 @@ class DataTable(Table):
             }
         super().__init__(db, table_name, columns)
 
-class ParameterTable(Table):
+class MethodTable(Table):
     def __init__(self, db: Database, method: str, param_def_dict: dict=None) -> None:
-        table_name = f"parameter_\'{method}\'"
+        table_name = f"method_\'{method}\'"
         if table_name in self.db.table_names:
             columns = None
         else:
-            assert param_def_dict, 'Parameter Dict must be provided when creating a new parameter table'
+            assert param_def_dict, 'Method Parameter Dict must be provided when creating a new parameter table'
             columns = {
                 'method_id': 'INTEGER PRIMARY KEY',
                 **param_def_dict,
@@ -99,8 +103,6 @@ class ResultTable(Table):
     def __init__(self, db: Database, task: str, rst_def_dict: dict=None, max_image_num: int=10) -> None:
         columns = {
             'id': 'INTEGER PRIMARY KEY',
-            'method': 'TEXT',
-            'data': 'TEXT',
             **{f'image_{i}': 'BLBO DEFAULT NULL' for i in range(max_image_num)},
             **rst_def_dict,
         }

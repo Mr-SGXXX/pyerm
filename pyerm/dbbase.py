@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.1.0
+# Version: 0.1.1
 
 import sqlite3
 
@@ -72,6 +72,7 @@ class Table:
         assert table_name in db.table_names, f'Table {table_name} does not exist'
         self.db = db
         self.table_name = table_name
+        self._column = None
         if not table_exists(db, table_name):
             assert columns, 'Columns must be provided when creating a new table'
             columns_str = ', '.join([f'{key} {value}' for key, value in columns.items()])
@@ -80,13 +81,14 @@ class Table:
             self.db.table_names.append(table_name)
             print(f'Table {table_name} created')
         else:
+            assert columns.keys() == set([column[1] for column in self.db.cursor.execute(f'PRAGMA table_info({table_name})').fetchall()]), f'Columns do not match for table {table_name}, consider to check or change table name'
             print(f'Table {table_name} already exists')
         self.primary_key = [column[5] for column in self.db.cursor.execute(f'PRAGMA table_info({table_name})').fetchall() if column[5] == 1]
     
-    def insert(self, **kwargs) -> None:
+    def insert(self, **kwargs) -> int:
         assert len(kwargs) == len(self.columns) - 1 or len(kwargs) == len(self.columns), 'Parameter number does not match'
         columns = ', '.join(kwargs.keys())
-        values = ', '.join([f'"{value}"' if isinstance(value, str) else str(value) for value in kwargs.values()])
+        values = ', '.join([f'"{value}"' if isinstance(value, str) else str(value) if not isinstance(value, bool) else str(int(value)) for value in kwargs.values()])
         values.replace('None', 'NULL')
         self.db.cursor.execute(f'INSERT INTO {self.table_name} ({columns}) VALUES ({values})')
         self.db.conn.commit()
@@ -109,7 +111,9 @@ class Table:
 
     @property
     def columns(self):
-        return [column[1] for column in self.db.cursor.execute(f'PRAGMA table_info({self.table_name})').fetchall()]
+        if self._column is None:
+            self._column = [column[1] for column in self.db.cursor.execute(f'PRAGMA table_info({self.table_name})').fetchall()]
+        return self._column
 
     def __len__(self):
         return len(self.select())
@@ -167,7 +171,7 @@ class View:
         self.db.conn.commit()
 
     def __str__(self) -> str:
-        return str([column for column in self.get_view_columns()]) + '\n' + \
+        return str([column for column in self.columns]) + '\n' + \
                 str(self.select())
     
 def table_exists(db:Database, table_name:str):
