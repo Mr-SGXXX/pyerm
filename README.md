@@ -12,7 +12,8 @@ All data you want can be efficiently saved by API provided without knowing the d
 
 ## Install Introduction
 All you need to do for using the python package is using the following command:
-`pip install pyerm`
+
+```pip install pyerm```
 
 ## Workflow Introduction
 ### Table Define & Init
