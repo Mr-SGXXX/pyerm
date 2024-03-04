@@ -10,6 +10,10 @@ Besides, the basic information and detail information of the experiment will als
 
 All data you want can be efficiently saved by API provided without knowing the detail implement, but I suggest reading the table introduction for further dealing with the records. 
 
+## Install Introduction
+All you need to do for using the python package is using the following command:
+`pip install pyerm`
+
 ## Workflow Introduction
 ### Table Define & Init
 Before starting the experiment, you need to init the tables you need for the experiment by three init function: `data_init()`, `method_init()`, `task_init()`.
