@@ -21,30 +21,29 @@
 # SOFTWARE.
 
 # Version: 0.1.4
-from setuptools import setup, find_packages
 
-with open("README.md", "r", encoding="utf-8") as f:
-    long_description = f.read()
+import pandas as pd
+import sqlite3
+import argparse
+import os
 
-setup(
-    name='pyerm',
-    version='0.1.3',
-    author='Yuxuan Shao',
-    author_email='yx_shao@qq.com',
-    description='This project is an experiment record manager for python based on SQLite DMS, which can help you efficiently save your experiment settings and results for later analysis.',
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="https://github.com/Mr-SGXXX/pyerm",
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-    ],
-    packages=find_packages(),
-    include_package_data=True,
-    entry_points={
-        'console_scripts': [
-            'export_xls=pyerm.scripts.export_xls:main',
-        ],
-    },
-)
+USER_HOME = os.path.expanduser('~')
+
+def export_xls(db_path:str, output_path:str):
+    conn = sqlite3.connect(db_path)
+    table_names = pd.read_sql_query("SELECT name FROM sqlite_master WHERE type='table'", conn)
+    writer = pd.ExcelWriter(output_path, engine='xlsxwriter')
+    for table_name in table_names['name']:
+        df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
+        df.to_excel(writer, sheet_name=table_name, index=False)
+    conn.close()
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('db_path', type=str, default= os.path.join(USER_HOME, 'experiment.db'), help='The path of the database file')
+    parser.add_argument('output_path', type=str, help='The path of the output excel file')
+    args = parser.parse_args()
+    export_xls(args.db_path, args.output_path)
+
+if __name__ == "__main__":
+    main()
