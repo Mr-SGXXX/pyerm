@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.1.4
+# Version: 0.1.6
 
 import pandas as pd
 import sqlite3
@@ -39,10 +39,14 @@ def export_xls(db_path:str, output_path:str):
     conn.close()
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('db_path', type=str, default= os.path.join(USER_HOME, 'experiment.db'), help='The path of the database file')
-    parser.add_argument('output_path', type=str, help='The path of the output excel file')
+    parser = argparse.ArgumentParser(description="Export the content of a SQLite database to an Excel file")
+    parser.add_argument('db_path', type=str, default=None, help='The path of the database file')
+    parser.add_argument('output_path', type=str, default="./experiment_record.xls", help='The path of the output excel file')
     args = parser.parse_args()
+    if args.db_path is None:
+        args.db_path = os.path.join(USER_HOME, 'experiment.db')
+    if not os.path.exists(args.db_path):
+        raise FileNotFoundError(f"The database file {args.db_path} does not exist")
     export_xls(args.db_path, args.output_path)
 
 if __name__ == "__main__":

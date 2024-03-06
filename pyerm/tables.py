@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.1.3
+# Version: 0.1.6
 
 from PIL import Image
 from io import BytesIO
@@ -81,10 +81,19 @@ class DataTable(Table):
         else:
             assert param_def_dict, 'Data Parameter Dict must be provided when creating a new data table'
             columns = {
-                'data_id': 'INTEGER PRIMARY KEY',
+                'data_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
                 **param_def_dict,
             }
         super().__init__(db, table_name, columns)
+        self.db.cursor.execute(f"CREATE UNIQUE INDEX IF NOT EXISTS ON {table_name}({', '.join(param_def_dict.keys())}")
+    
+    def insert(self, **kwargs):
+        id_list = self.db.cursor.execute(f"SELECT data_id FROM {self.table_name} WHERE {' AND '.join([f'{k}={v}' for k, v in kwargs.items()])}").fetchall()
+        if id_list == []:
+            return super().insert(**kwargs)
+        else:
+            return id_list[0][0] 
+
 
 class MethodTable(Table):
     def __init__(self, db: Database, method: str, param_def_dict: dict=None) -> None:
@@ -94,15 +103,23 @@ class MethodTable(Table):
         else:
             assert param_def_dict, 'Method Parameter Dict must be provided when creating a new parameter table'
             columns = {
-                'method_id': 'INTEGER PRIMARY KEY',
+                'method_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
                 **param_def_dict,
             }
         super().__init__(db, table_name, columns)
+        self.db.cursor.execute(f"CREATE UNIQUE INDEX IF NOT EXISTS ON {table_name}({', '.join(param_def_dict.keys())}")
+    
+    def insert(self, **kwargs):
+        id_list = self.db.cursor.execute(f"SELECT data_id FROM {self.table_name} WHERE {' AND '.join([f'{k}={v}' for k, v in kwargs.items()])}").fetchall()
+        if id_list == []:
+            return super().insert(**kwargs)
+        else:
+            return id_list[0][0] 
 
 class ResultTable(Table):
     def __init__(self, db: Database, task: str, rst_def_dict: dict=None, max_image_num: int=10) -> None:
         columns = {
-            'id': 'INTEGER PRIMARY KEY',
+            'id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
             **{f'image_{i}': 'BLBO DEFAULT NULL' for i in range(max_image_num)},
             **rst_def_dict,
         }
@@ -127,7 +144,7 @@ class ResultTable(Table):
 class DetailTable(Table):
     def __init__(self, db: Database, method: str, detail_def_dict: dict=None) -> None:
         columns = {
-            'detail_id': 'INTEGER PRIMARY KEY',
+            'detail_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
             'experiment_id': 'INTEGER FOREIGN KEY REFERENCES experiment_list(id)',
             **detail_def_dict,
         }

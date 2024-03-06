@@ -33,6 +33,20 @@ The experiment recorder mainly consists of four parts, `experiment_start()`, `ex
 
 `detail_update()` saves the intermediate results. It's optional, and if you never use it and don't manually set the define dict, the detail table may not be created.
 
+
+## Scripts Introduction
+### export_xls 
+Export the content of a SQLite database to an Excel file
+```shell
+export_xls db_path(default ~/experiment.db) output_path(default ./experiment_record.xls)
+```
+### db_merge 
+Merge two SQLite databases.
+```shell
+db_merge db_path_destination db_path_source
+```
+
+
 ## Table Introduction
 
 ### Experiment Table

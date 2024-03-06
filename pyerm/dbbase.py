@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.1.3
+# Version: 0.1.6
 
 import sqlite3
 
@@ -72,7 +72,6 @@ class Table:
         assert table_name in db.table_names, f'Table {table_name} does not exist'
         self.db = db
         self.table_name = table_name
-        self._column = None
         if not table_exists(db, table_name):
             assert columns, 'Columns must be provided when creating a new table'
             columns_str = ', '.join([f'{key} {value}' for key, value in columns.items()])
@@ -83,7 +82,7 @@ class Table:
         else:
             assert columns.keys() == set([column[1] for column in self.db.cursor.execute(f'PRAGMA table_info({table_name})').fetchall()]), f'Columns do not match for table {table_name}, consider to check or change table name'
             print(f'Table {table_name} already exists')
-        self.primary_key = [column[5] for column in self.db.cursor.execute(f'PRAGMA table_info({table_name})').fetchall() if column[5] == 1]
+        self.primary_key = [column[1] for column in self.db.cursor.execute(f'PRAGMA table_info({table_name})').fetchall() if column[5] == 1]
     
     def insert(self, **kwargs) -> int:
         assert len(kwargs) == len(self.columns) - 1 or len(kwargs) == len(self.columns), 'Parameter number does not match'
