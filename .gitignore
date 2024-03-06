@@ -1,1 +1,3 @@
-./dist
+dist
+build
+pyerm.egg-info

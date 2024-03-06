@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.1.8
+# Version: 0.1.9
 from setuptools import setup, find_packages
 
 with open("README.md", "r", encoding="utf-8") as f:
@@ -28,7 +28,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name='pyerm',
-    version='0.1.8',
+    version='0.1.9',
     author='Yuxuan Shao',
     author_email='yx_shao@qq.com',
     description='This project is an experiment record manager for python based on SQLite DMS, which can help you efficiently save your experiment settings and results for later analysis.',
@@ -48,4 +48,7 @@ setup(
             'db_merge=pyerm.scripts.db_merge:main',
         ],
     },
+    install_requires=[
+        "pandas",
+    ],
 )

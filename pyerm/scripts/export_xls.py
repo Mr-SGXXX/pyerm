@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.1.7
+# Version: 0.1.9
 
 import pandas as pd
 import sqlite3
@@ -46,7 +46,8 @@ def main():
     if args.db_path is None:
         args.db_path = os.path.join(USER_HOME, 'experiment.db')
     if not os.path.exists(args.db_path):
-        raise FileNotFoundError(f"The database file {args.db_path} does not exist")
+        print(f"Error: The database file {args.db_path} does not exist, please run any experiment first or check the database path.")
+        return
     export_xls(args.db_path, args.output_path)
 
 if __name__ == "__main__":

@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.1.8
+# Version: 0.1.9
 import sqlite3
 import argparse
 import os
@@ -51,11 +51,11 @@ def main():
     parser = argparse.ArgumentParser(description='Merge two SQLite databases.')
     parser.add_argument('db_path_destination', type=str, help='Destination database file path.')
     parser.add_argument('db_path_source', type=str, help='Source database file path.')
+    args = parser.parse_args()
     if not os.path.exists(args.db_path_destination):
         raise FileNotFoundError(f"The database file {args.db_path_destination} does not exist")
     if not os.path.exists(args.db_path_source):
         raise FileNotFoundError(f"The database file {args.db_path_source} does not exist")
-    args = parser.parse_args()
     merge_db(args.db_path_destination, args.db_path_source)
 
 
