@@ -20,12 +20,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.1.6
+# Version: 0.1.7
 import sqlite3
 import argparse
 import os
 
-from dbbase import Table, Database
+from ..dbbase import Table, Database
 
 def copy_table(db1:Database, db2:Database, table_name:str):
     table = Table(db2, table_name)

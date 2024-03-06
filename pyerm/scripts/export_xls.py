@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.1.6
+# Version: 0.1.7
 
 import pandas as pd
 import sqlite3
@@ -40,8 +40,8 @@ def export_xls(db_path:str, output_path:str):
 
 def main():
     parser = argparse.ArgumentParser(description="Export the content of a SQLite database to an Excel file")
-    parser.add_argument('db_path', type=str, default=None, help='The path of the database file')
-    parser.add_argument('output_path', type=str, default="./experiment_record.xls", help='The path of the output excel file')
+    parser.add_argument('db_path', type=str, nargs='?', default=None, help='The path of the database file')
+    parser.add_argument('output_path', type=str, nargs='?', default="./experiment_record.xls", help='The path of the output excel file')
     args = parser.parse_args()
     if args.db_path is None:
         args.db_path = os.path.join(USER_HOME, 'experiment.db')
