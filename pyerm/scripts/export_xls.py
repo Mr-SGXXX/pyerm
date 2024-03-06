@@ -36,6 +36,7 @@ def export_xls(db_path:str, output_path:str):
     for table_name in table_names['name']:
         df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
         df.to_excel(writer, sheet_name=table_name, index=False)
+    writer.close()
     conn.close()
 
 def main():

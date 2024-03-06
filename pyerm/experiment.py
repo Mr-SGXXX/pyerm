@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.1.3
+# Version: 0.2.0
 
 import os
 import typing
@@ -57,19 +57,19 @@ class Experiment:
         assert self._task is not None, 'Task not initialized, run task_init() first'
         self._id = self.experiment_table.experiment_start(description, self._method, self._method_id, self._data, self._data_id, self._task, start_time, tags, experimenters)
     
-    def experiment_over(self, rst_dict:typing.Dict[str, typing.Union[int, float, str, bool, bytearray, bytes]], images:typing.List[typing.Union[Image.Image, str]], end_time:float=None, useful_time_cost:float=None) -> None:
+    def experiment_over(self, rst_dict:typing.Dict[str, typing.Union[int, float, str, bool, bytearray, bytes]], images:typing.List[typing.Union[Image.Image, str]]=[], end_time:float=None, useful_time_cost:float=None) -> None:
         assert self._id is not None, 'Experiment not started, run experiment_start() first'
-        assert len(rst_dict) == len(self.rst_table.columns) - self.rst_table.max_image_num - 1, 'Result definition and result dict length mismatch'
+        assert self.rst_table is None or len(rst_dict) <= len(self.rst_table.columns) - self.rst_table.max_image_num - 1, 'Result definition and result dict length mismatch'
         if self.rst_table is None:
             rst_def_dict = auto_detect_def(rst_dict)
             self.rst_table = ResultTable(self.db, self._task, rst_def_dict)
         self.rst_table.record_rst(experiment_id=self._id, **rst_dict)
         self.rst_table.record_image(self._id, images)
-        self.experiment_table.experiment_over(self.id, end_time=end_time, useful_time_cost=useful_time_cost)
+        self.experiment_table.experiment_over(self._id, end_time=end_time, useful_time_cost=useful_time_cost)
 
-    def experiment_failed(self, end_time:float=None) -> None:
+    def experiment_failed(self, exception:Exception, end_time:float=None) -> None:
         assert self._id is not None, 'Experiment not started, run experiment_start() first'
-        self.experiment_table.experiment_failed(self.id, end_time=end_time)
+        self.experiment_table.experiment_failed(self._id, exception, end_time=end_time)
 
     def detail_update(self, detail_dict:typing.Dict[str, typing.Union[int, float, str, bool, bytearray, bytes]]):
         assert self._id is not None, 'Experiment not started, run experiment_start() first'
@@ -82,20 +82,29 @@ class Experiment:
     def data_init(self, data_name:str, param_dict:typing.Dict[str, typing.Union[int, float, str, bool, bytearray, bytes]], param_def_dict:typing.Dict[str, str]=None):
         assert param_def_dict is None or len(param_def_dict) == len(param_dict), 'Parameter definition and parameter dict length mismatch'
         self._data = data_name
+        if len(param_dict) == 0:
+            self._data_id = -1
+            print(f"No parameter for table data_{data_name}, table creating canceled")
+            return
         if param_def_dict is None:
             param_def_dict = auto_detect_def(param_dict)
         self.data_table = DataTable(self.db, data_name, param_def_dict)
         self._data_id = self.data_table.insert(**param_dict)
     
     def method_init(self, method_name:str, param_dict:typing.Dict[str, typing.Union[int, float, str, bool, bytearray, bytes]], param_def_dict:typing.Dict[str, str]=None, detail_def_dict:typing.Dict[str, str]=None):
-        assert param_dict is None or len(param_def_dict) == len(param_dict), 'Parameter definition and parameter dict length mismatch'
+        assert param_def_dict is None or len(param_def_dict) == len(param_dict), 'Parameter definition and parameter dict length mismatch'
         self._method = method_name
+        if detail_def_dict is not None:
+            self.detail_table = DetailTable(self.db, method_name, detail_def_dict)
+        if len(param_dict) == 0:
+            self._method_id = -1
+            print(f"No parameter for table method_{method_name}, table creating canceled")
+            return
         if param_def_dict is None:
             param_def_dict = auto_detect_def(param_dict)
         self.method_table = MethodTable(self.db, method_name, param_def_dict)
         self._method_id = self.method_table.insert(**param_dict)
-        if detail_def_dict is not None:
-            self.detail_table = DetailTable(self.db, method_name, detail_def_dict)
+
 
     def task_init(self, task_name:str, rst_def_dict:typing.Dict[str, str]=None, max_image_num:int=10):
         self._task = task_name
@@ -117,5 +126,9 @@ def auto_detect_def(param_dict:typing.Dict[str, typing.Union[int, float, str, bo
         elif isinstance(v, bytes) or isinstance(v, bytearray):
             param_def_dict[k] = 'BLOB'
         else:
-            raise TypeError(f'Unsupported type for DB: {type(v)}')
+            try:
+                param_dict[k] = str(param_dict[k])
+                param_def_dict[k] = 'TEXT'
+            except:
+                raise TypeError(f'Unsupported type for DB: {type(v)}')
     return param_def_dict
