@@ -20,12 +20,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.0
+# Version: 0.2.1
 
 import sqlite3
+import re
 
 class Database:
-    def __init__(self, db_path:str) -> None:
+    def __init__(self, db_path:str, output_info=True) -> None:
+        self.db_path = db_path
+        self.info = output_info
         self.conn = sqlite3.connect(db_path)
         self.cursor = self.conn.cursor()
         self.table_names = [table_name[0] for table_name in self.cursor.execute('SELECT name FROM sqlite_master WHERE type="table"').fetchall()]
@@ -78,14 +81,16 @@ class Table:
             self.db.cursor.execute(f'CREATE TABLE IF NOT EXISTS {table_name} ({columns_str})')
             self.db.conn.commit()
             self.db.table_names.append(table_name)
-            print(f'Table {table_name} created')
+            if self.db.info:
+                print(f'Table {table_name} created')
         else:
             if columns is not None:
                 for column, definition in list(columns.items()):
                     if 'VIRTUAL' in definition:
                         del columns[column]
             assert columns is None or list(columns.keys()) == list([column[1] for column in self.db.cursor.execute(f'PRAGMA table_info({table_name})').fetchall()]), f'Columns do not match for table {table_name}, consider to check or change table name'
-            print(f'Table {table_name} already exists')
+            if self.db.info:
+                print(f'Table {table_name} already exists')
         self.primary_key = [column[1] for column in self.db.cursor.execute(f'PRAGMA table_info({table_name})').fetchall() if column[5] == 1]
     
     def insert(self, **kwargs) -> int:
@@ -144,11 +149,13 @@ class View:
             self.query = query
             self.db.conn.commit()
             self.db.view_names.append(view_name)
-            print(f'View {view_name} created')
+            if self.db.info:
+                print(f'View {view_name} created')
         else:
             self.db.cursor.execute(f"SELECT sql FROM sqlite_master WHERE type='view' AND name='{self.view_name}'")
             self.query = self.db.cursor.fetchone()[0]
-            print(f'View {view_name} already exists')
+            if self.db.info:
+                print(f'View {view_name} already exists')
     
     def select(self, *columns:str, where:str=None) -> list:
         columns = ', '.join(columns) if columns else '*'
@@ -200,3 +207,10 @@ def view_exists(db:Database, view_name:str):
         return True
     else:
         return False
+
+def extract_names(sql_statement):
+    pattern = r'(?:FROM|JOIN|UPDATE|INSERT INTO)\s+(\w+)'
+    table_names = re.findall(pattern, sql_statement, re.IGNORECASE)
+    pattern = r'CREATE\s+(TABLE|VIEW)\s+(\w+)'
+    created_tables = re.findall(pattern, sql_statement, re.IGNORECASE)
+    return table_names + created_tables

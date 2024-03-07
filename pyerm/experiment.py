@@ -25,6 +25,7 @@
 import os
 import typing
 from PIL import Image
+import atexit
 
 from .dbbase import Database
 from .tables import ExperimentTable, MethodTable, ResultTable, DetailTable, DataTable
@@ -70,6 +71,7 @@ class Experiment:
     def experiment_failed(self, exception:Exception, end_time:float=None) -> None:
         assert self._id is not None, 'Experiment not started, run experiment_start() first'
         self.experiment_table.experiment_failed(self._id, exception, end_time=end_time)
+        atexit.register(self.experiment_table.experiment_failed, self._id, exception, end_time=end_time)
 
     def detail_update(self, detail_dict:typing.Dict[str, typing.Union[int, float, str, bool, bytearray, bytes]]):
         assert self._id is not None, 'Experiment not started, run experiment_start() first'

@@ -20,8 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.1.9
+# Version: 0.2.1
 
+import PIL.Image as Image
+import io
 import pandas as pd
 import sqlite3
 import argparse
@@ -35,6 +37,10 @@ def export_xls(db_path:str, output_path:str):
     writer = pd.ExcelWriter(output_path, engine='xlsxwriter')
     for table_name in table_names['name']:
         df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
+        # Decode BLOB image data and save in Excel
+        for col in df.columns:
+            if "image_" in col and df[col].notnull().any():  # Check if column contains image data
+                df[col] = df[col].apply(lambda x: Image.open(io.BytesIO(x)) if x is not None else None)  # Decode image data
         df.to_excel(writer, sheet_name=table_name, index=False)
     writer.close()
     conn.close()

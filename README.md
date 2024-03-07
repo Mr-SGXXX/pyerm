@@ -1,4 +1,4 @@
-# pyerm (Python Experiment Record Manager)
+# PyERM (Python Experiment Record Manager)
 This project is an experiment record manager for python based on SQLite DMS, which can help you efficiently save your experiment settings and results for later analysis. 
 
 *In the current version, all operations will be performed locally.*
