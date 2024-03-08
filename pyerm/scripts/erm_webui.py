@@ -20,13 +20,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.1
+# Version: 0.2.2
 
 import argparse
 import subprocess
 
+from pyerm import PACKAGE_PATH
+
 def open_webui(port:int=8501):
-    subprocess.run(["streamlit", "run", "pyerm/webUI/app.py", f"server.port={port}"])
+    print(PACKAGE_PATH)
+    subprocess.run(["streamlit", "run", f"{PACKAGE_PATH}/webUI/app.py", f"server.port={port}"])
 
 def main():
     parser = argparse.ArgumentParser(description='Open the web user interface of the experiment record manager')

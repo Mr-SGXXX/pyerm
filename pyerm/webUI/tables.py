@@ -63,8 +63,8 @@ def select_tables():
         data = db[table_name].select()
         columns = [column[0] for column in db.cursor.description]
         df = pd.DataFrame(data, columns=columns)
-        columns_keep = [col for col in df.columns if not col.startswith("image_")]
-        df = df[columns_keep]
+    columns_keep = [col for col in df.columns if not col.startswith("image_")]
+    df = df[columns_keep]
 
     st.write('## Table:', table_name)
     st.dataframe(df)

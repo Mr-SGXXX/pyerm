@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.0
+# Version: 0.2.2
 
 from PIL import Image
 from io import BytesIO
@@ -129,7 +129,7 @@ class MethodTable(Table):
 class ResultTable(Table):
     def __init__(self, db: Database, task: str, rst_def_dict: dict=None, max_image_num: int=10) -> None:
         columns = {
-            'id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+            'experiment_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
             **{f'image_{i}': 'BLBO DEFAULT NULL' for i in range(max_image_num)},
             **rst_def_dict,
         }
@@ -138,7 +138,7 @@ class ResultTable(Table):
         self.max_image_num = max_image_num
 
     def record_rst(self, experiment_id:int, **rst_dict:dict):
-        self.insert(id=experiment_id, **rst_dict)
+        self.insert(experiment_id=experiment_id, **rst_dict)
 
     def record_image(self, experiment_id:int, image_list:typing.List[typing.Union[Image.Image, str]]=[]):
         for i, image in enumerate(image_list):
@@ -148,7 +148,7 @@ class ResultTable(Table):
                 image = image.getvalue()
             elif isinstance(image, str):
                 image = open(image, 'rb').read()
-            self.update(f"id={experiment_id}", **{f'image_{i}': image})
+            self.update(f"experiment_id={experiment_id}", **{f'image_{i}': image})
 
 
 class DetailTable(Table):

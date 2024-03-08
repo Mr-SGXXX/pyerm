@@ -20,20 +20,25 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.1
+# Version: 0.2.2
 
 import streamlit as st
 import os
+import subprocess
+from importlib.metadata import version
+
+USER_HOME = os.path.expanduser("~")
 
 REPO_URL = "https://github.com/Mr-SGXXX/pyerm"
 
 def home():
     title()
     load_db()
+    download_xls()
 
 def title():
     st.title('Python Experiment Record Manager WebUI')
-    st.markdown(f"**Version**: 0.2.1")
+    st.markdown(f"**Version**: {version('pyerm')}")
     st.markdown(f"**Repository**: [{REPO_URL}]({REPO_URL})")
     st.markdown(f"**License**: MIT")
     st.markdown(f"**Author**: Yuxuan Shao")
@@ -50,5 +55,26 @@ def load_db():
         st.write(f"Database loaded succesfully.")
     else:
         st.write(f"Database not found. Please input the correct path.")
+
+def export_xls():
+    xls_path = f"{USER_HOME}/.tmp/experiment.xls"
+    subprocess.run(["export_xls", st.session_state.db_path, xls_path])
+    with open(xls_path, "rb") as file:
+        st.session_state.xls = file.read()
+    
+    subprocess.run(["rm", "-f", xls_path])
+
+def download_xls():
+    if st.session_state.xls is None:
+        export_xls()
+    st.download_button(
+            label="Download Excel",
+            data=st.session_state.xls,
+            file_name="experiment.xls",
+            mime="application/vnd.ms-excel"
+        )
+        
+
+
     
 
