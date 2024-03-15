@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.2
+# Version: 0.2.3
 
 import streamlit as st
 import os
@@ -34,7 +34,8 @@ REPO_URL = "https://github.com/Mr-SGXXX/pyerm"
 def home():
     title()
     load_db()
-    download_xls()
+    if os.path.exists(st.session_state.db_path) and st.session_state.db_path.endswith('.db'):
+        download_xls()
 
 def title():
     st.title('Python Experiment Record Manager WebUI')

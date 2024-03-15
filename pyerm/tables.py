@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.2
+# Version: 0.2.3
 
 from PIL import Image
 from io import BytesIO
@@ -65,12 +65,12 @@ class ExperimentTable(Table):
         end_time = strftime("%Y-%m-%d %H:%M:%S", end_time)
         super().update(f"id={experiment_id}", end_time=strftime(end_time), useful_time_cost=useful_time_cost, status='finished')
 
-    def experiment_failed(self, experiment_id:int, exception:Exception, end_time:float=None) -> None:
+    def experiment_failed(self, experiment_id:int, end_time:float=None) -> None:
         if end_time is None:
             end_time = time()
         end_time = localtime(end_time)
         end_time = strftime("%Y-%m-%d %H:%M:%S", end_time)
-        error_info = str(exception)
+        error_info = traceback.format_exc()
         super().update(f"id={experiment_id}", end_time=strftime(end_time), status='failed', failed_reason=error_info)
 
     def get_experiment(self, experiment_id:int) -> dict:

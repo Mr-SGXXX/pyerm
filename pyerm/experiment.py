@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.0
+# Version: 0.2.3
 
 import os
 import typing
@@ -57,6 +57,7 @@ class Experiment:
         assert self._method is not None, 'Method not initialized, run method_init() first'
         assert self._task is not None, 'Task not initialized, run task_init() first'
         self._id = self.experiment_table.experiment_start(description, self._method, self._method_id, self._data, self._data_id, self._task, start_time, tags, experimenters)
+        atexit.register(self.experiment_table.experiment_failed, self._id)
     
     def experiment_over(self, rst_dict:typing.Dict[str, typing.Union[int, float, str, bool, bytearray, bytes]], images:typing.List[typing.Union[Image.Image, str]]=[], end_time:float=None, useful_time_cost:float=None) -> None:
         assert self._id is not None, 'Experiment not started, run experiment_start() first'
@@ -67,11 +68,12 @@ class Experiment:
         self.rst_table.record_rst(experiment_id=self._id, **rst_dict)
         self.rst_table.record_image(self._id, images)
         self.experiment_table.experiment_over(self._id, end_time=end_time, useful_time_cost=useful_time_cost)
+        atexit.unregister(self.experiment_table.experiment_failed)
 
-    def experiment_failed(self, exception:Exception, end_time:float=None) -> None:
+    def experiment_failed(self, end_time:float=None) -> None:
         assert self._id is not None, 'Experiment not started, run experiment_start() first'
-        self.experiment_table.experiment_failed(self._id, exception, end_time=end_time)
-        atexit.register(self.experiment_table.experiment_failed, self._id, exception, end_time=end_time)
+        self.experiment_table.experiment_failed(self._id, end_time=end_time)
+        
 
     def detail_update(self, detail_dict:typing.Dict[str, typing.Union[int, float, str, bool, bytearray, bytes]]):
         assert self._id is not None, 'Experiment not started, run experiment_start() first'
