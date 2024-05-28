@@ -21,3 +21,7 @@
 # SOFTWARE.
 
 # Version: 0.2.4
+
+from .experiment import Experiment
+
+__all__ = ["Experiment"]

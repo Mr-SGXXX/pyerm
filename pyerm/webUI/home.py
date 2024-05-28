@@ -20,12 +20,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.3
+# Version: 0.2.4
 
 import streamlit as st
 import os
 import subprocess
 from importlib.metadata import version
+
+from pyerm.database.dbbase import Database
 
 USER_HOME = os.path.expanduser("~")
 
@@ -35,7 +37,12 @@ def home():
     title()
     load_db()
     if os.path.exists(st.session_state.db_path) and st.session_state.db_path.endswith('.db'):
-        download_xls()
+        st.markdown('Export Experiment Data')
+        if st.checkbox('Download Excel & Result Images as ZIP'):
+            download_zip()
+        elif st.checkbox('Download raw db file'):
+            download_db()
+
 
 def title():
     st.title('Python Experiment Record Manager WebUI')
@@ -43,7 +50,9 @@ def title():
     st.markdown(f"**Repository**: [{REPO_URL}]({REPO_URL})")
     st.markdown(f"**License**: MIT")
     st.markdown(f"**Author**: Yuxuan Shao")
-    st.markdown(f"**Description**: This is the web user interface of the Python Experiment Record Manager.")
+    st.markdown(f"**Description**:")
+    st.markdown(f"PyERM is a Python package for managing experiment records.")
+    st.markdown(f"This is the web user interface of the PyERM.")
     st.markdown(f"**Disclaimer**: This is a demo version. The actual version is not available yet.")
 
 def load_db():
@@ -53,29 +62,45 @@ def load_db():
         st.session_state.db_path = db_path
     st.write(f"Current database path: {st.session_state.db_path}")
     if os.path.exists(db_path) and db_path.endswith('.db'):
-        st.write(f"Database loaded succesfully.")
+        st.write(f"Database found succesfully.")
     else:
         st.write(f"Database not found. Please input the correct path.")
 
-def export_xls():
-    xls_path = f"{USER_HOME}/.tmp/experiment.xls"
-    subprocess.run(["export_xls", st.session_state.db_path, xls_path])
-    with open(xls_path, "rb") as file:
-        st.session_state.xls = file.read()
+def export_data():
+    output_dir_path = f"{USER_HOME}/.tmp"
+    if not os.path.exists(output_dir_path):
+        os.makedirs(output_dir_path)
+    db_name = os.path.basename(st.session_state.db_path)
+    db_name = os.path.splitext(db_name)[0]
+    zip_path = os.path.join(output_dir_path, f"{db_name}.zip")
+    subprocess.run(["export_zip", st.session_state.db_path, output_dir_path])
+    with open(zip_path, "rb") as file:
+        zip = file.read()
     
-    subprocess.run(["rm", "-f", xls_path])
+    subprocess.run(["rm", "-f", zip_path])
+    return zip
 
-def download_xls():
-    if st.session_state.xls is None:
-        export_xls()
+def download_zip():
+    version = Database(st.session_state.db_path).get_db_version()
+    if st.session_state.zip is None or version != st.session_state.last_version:
+        st.session_state.zip = export_data()
+        st.session_state.last_version = version
     st.download_button(
-            label="Download Excel",
-            data=st.session_state.xls,
-            file_name="experiment.xls",
-            mime="application/vnd.ms-excel"
+            label="Download Excel&Images as ZIP",
+            data=st.session_state.zip,
+            file_name=f"{os.path.basename(st.session_state.db_path)}.zip",
+            mime="application/zip"
         )
         
 
-
+def download_db():
+    with open(st.session_state.db_path, "rb") as file:
+        db = file.read()
+    st.download_button(
+            label="Download raw db file",
+            data=db,
+            file_name=f"{os.path.basename(st.session_state.db_path)}",
+            mime="application/sqlite3"
+        )
     
 

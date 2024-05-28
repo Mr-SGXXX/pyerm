@@ -28,7 +28,6 @@ import subprocess
 from pyerm import PACKAGE_PATH
 
 def open_webui(port:int=8501):
-    print(PACKAGE_PATH)
     subprocess.run(["streamlit", "run", f"{PACKAGE_PATH}/webUI/app.py", f"server.port={port}"])
 
 def main():

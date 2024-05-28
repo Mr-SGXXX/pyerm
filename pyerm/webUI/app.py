@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.2
+# Version: 0.2.4
 
 import streamlit as st
 import os
@@ -37,8 +37,10 @@ def init():
         st.session_state.table_name = None
     if 'sql' not in st.session_state:
         st.session_state.sql = None
-    if 'xls' not in st.session_state:
-        st.session_state.xls = None
+    if 'zip' not in st.session_state:
+        st.session_state.zip = None
+    if 'last_version' not in st.session_state:
+        st.session_state.last_version = None
 
 
 def main():

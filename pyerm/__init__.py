@@ -20,11 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.2
+# Version: 0.2.4
 
 import os
-from .experiment import Experiment
+from .database import *
 
 PACKAGE_PATH = os.path.dirname(os.path.abspath(__file__))
-
-__all__ = ["Experiment"]

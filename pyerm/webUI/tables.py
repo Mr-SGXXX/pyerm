@@ -20,13 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.1
+# Version: 0.2.4
 
 import pandas as pd
 import streamlit as st
 import os
 
-from pyerm.dbbase import Database
+from pyerm.database.dbbase import Database
 
 def tables():
     title()
@@ -36,8 +36,6 @@ def tables():
         if st.sidebar.checkbox('Use SQL condition & columns', False):
             input_sql()
         select_tables()
-    else:
-        st.write('No database loaded, please load a database first.')
 
 def detect_tables():
     db = Database(st.session_state.db_path, output_info=False)

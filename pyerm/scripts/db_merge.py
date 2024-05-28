@@ -25,7 +25,7 @@ import sqlite3
 import argparse
 import os
 
-from ..dbbase import Table, Database
+from pyerm.database.dbbase import Table, Database
 
 def copy_table(db1:Database, db2:Database, table_name:str):
     table = Table(db2, table_name)

@@ -28,7 +28,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name='pyerm',
-    version='0.2.3',
+    version='0.2.4',
     author='Yuxuan Shao',
     author_email='yx_shao@qq.com',
     description='This project is an local experiment record manager for python based on SQLite DMS, suitable for recording experiment and analysing experiment data with a web UI, which can help you efficiently save your experiment settings and results for later analysis.',
@@ -44,12 +44,13 @@ setup(
     include_package_data=True,
     entry_points={
         'console_scripts': [
-            'export_xls=pyerm.scripts.export_xls:main',
+            'export_zip=pyerm.scripts.export_data:main',
             'db_merge=pyerm.scripts.db_merge:main',
-            'open_webui=pyerm.scripts.erm_webui:main',
+            'pyerm_webui=pyerm.scripts.erm_webui:main',
         ],
     },
     install_requires=[
+        "zipfile",
         "pandas",
         "pillow",
         "xlsxwriter",
@@ -57,4 +58,5 @@ setup(
         "matplotlib",
         "streamlit>=1.31.1"
     ],
+    python_requires='>=3.9',
 )

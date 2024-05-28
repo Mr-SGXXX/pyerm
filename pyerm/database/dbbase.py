@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.1
+# Version: 0.2.4
 
 import sqlite3
 import re
@@ -70,14 +70,21 @@ class Database:
     def get_table(self, table_name:str):
         return self[table_name]
 
+    def get_db_version(self):
+        self.cursor.execute("PRAGMA data_version;")
+        version = self.cursor.fetchone()[0]
+        return version
+
+
 class Table:
     def __init__(self, db:Database, table_name:str, columns:dict=None) -> None:
         self.db = db
+        table_name = table_name.strip().replace(' ', '_')
         self.table_name = table_name
         self._column = None
         if not table_exists(db, table_name):
             assert columns, 'Columns must be provided when creating a new table'
-            columns_str = ', '.join([f'{key} {value}' for key, value in columns.items()])
+            columns_str = ', '.join([f"{key.strip().replace(' ', '_')} {value}" for key, value in columns.items()])
             self.db.cursor.execute(f'CREATE TABLE IF NOT EXISTS {table_name} ({columns_str})')
             self.db.conn.commit()
             self.db.table_names.append(table_name)
@@ -87,7 +94,7 @@ class Table:
             if columns is not None:
                 for column, definition in list(columns.items()):
                     if 'VIRTUAL' in definition:
-                        del columns[column]
+                        del columns[column.replace(' ', '_')]
             assert columns is None or list(columns.keys()) == list([column[1] for column in self.db.cursor.execute(f'PRAGMA table_info({table_name})').fetchall()]), f'Columns do not match for table {table_name}, consider to check or change table name'
             if self.db.info:
                 print(f'Table {table_name} already exists')
@@ -95,7 +102,7 @@ class Table:
     
     def insert(self, **kwargs) -> int:
         assert len(kwargs) <= len(self.columns), 'Parameter inputted too much'
-        columns = ', '.join(kwargs.keys())
+        columns = ', '.join([key.replace(' ', '_') for key in kwargs.keys()])
         values = ', '.join(['?' for _ in kwargs])
         query = f'INSERT INTO {self.table_name} ({columns}) VALUES ({values})'
         self.db.cursor.execute(query, tuple(kwargs.values()))
@@ -108,16 +115,21 @@ class Table:
         self.db.conn.commit()
 
     def update(self, where:str, **kwargs) -> None:
-        set_values = ', '.join([f'{key}=?' for key in kwargs])
+        set_values = ', '.join([f'{key.replace(" ", "_")}=?' for key in kwargs])
         query = f'UPDATE {self.table_name} SET {set_values} WHERE {where}'
         self.db.cursor.execute(query, tuple(kwargs.values()))
         self.db.conn.commit()
 
     def select(self, *columns:str, where:str=None) -> list:
-        columns_str = ', '.join(columns) if columns else '*'
+        columns_str = ', '.join([col.replace(' ', '_') for col in columns]) if columns else '*'
         where_clause = f'WHERE {where}' if where else ''
         query = f'SELECT {columns_str} FROM {self.table_name} {where_clause}'
         return self.db.cursor.execute(query).fetchall()
+    
+    def add_column(self, column_name:str, column_definition:str) -> None:
+        column_name = column_name.replace(' ', '_')
+        self.db.cursor.execute(f'ALTER TABLE {self.table_name} ADD COLUMN {column_name} {column_definition}')
+        self.db.conn.commit()
 
     @property
     def columns(self):
@@ -142,6 +154,7 @@ class Table:
 class View:
     def __init__(self, db:Database, view_name:str, query:str=None) -> None:
         self.db = db
+        view_name = view_name.replace(' ', '_')
         self.view_name = view_name
         if not view_exists(db, view_name):
             assert query, 'Query must be provided when creating a new view'
@@ -158,7 +171,7 @@ class View:
                 print(f'View {view_name} already exists')
     
     def select(self, *columns:str, where:str=None) -> list:
-        columns = ', '.join(columns) if columns else '*'
+        columns = ', '.join([col.replace(' ', '_') for col in columns]) if columns else '*'
         where = f'WHERE {where}' if where else ''
         return self.db.cursor.execute(f'SELECT {columns} FROM {self.view_name} {where}').fetchall()
     

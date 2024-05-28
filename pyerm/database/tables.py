@@ -20,10 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.3
+# Version: 0.2.4
 
 from PIL import Image
 from io import BytesIO
+import re
 from time import strftime, time, localtime
 import typing
 import traceback
@@ -65,12 +66,13 @@ class ExperimentTable(Table):
         end_time = strftime("%Y-%m-%d %H:%M:%S", end_time)
         super().update(f"id={experiment_id}", end_time=strftime(end_time), useful_time_cost=useful_time_cost, status='finished')
 
-    def experiment_failed(self, experiment_id:int, end_time:float=None) -> None:
+    def experiment_failed(self, experiment_id:int, error_info:str=None, end_time:float=None) -> None:
         if end_time is None:
             end_time = time()
         end_time = localtime(end_time)
         end_time = strftime("%Y-%m-%d %H:%M:%S", end_time)
-        error_info = traceback.format_exc()
+        if error_info is None:
+            error_info = traceback.format_exc()
         super().update(f"id={experiment_id}", end_time=strftime(end_time), status='failed', failed_reason=error_info)
 
     def get_experiment(self, experiment_id:int) -> dict:
@@ -92,11 +94,16 @@ class DataTable(Table):
             }
         super().__init__(db, table_name, columns)
         if len(param_def_dict) != 0: 
-            self.db.cursor.execute(f"CREATE UNIQUE INDEX IF NOT EXISTS index_{table_name} ON {table_name}({', '.join(param_def_dict.keys())})")
+            self.db.cursor.execute(f"CREATE UNIQUE INDEX IF NOT EXISTS index_{self.table_name} ON {self.table_name}({', '.join(param_def_dict.keys())})")
     
     def insert(self, **kwargs):
-        condition = ' AND '.join([f'{k}="{v}"' if isinstance(v, str) else f'{k}={v}' for k, v in kwargs.items()])
-        id_list = self.db.cursor.execute(f"SELECT data_id FROM {self.table_name} WHERE {condition}").fetchall()
+        condition = ' AND '.join([f'{k.replace(" ", "_")}=?' for k in kwargs.keys()])
+        values = list(kwargs.values())
+
+        query = f"SELECT data_id FROM {self.table_name} WHERE {condition}"
+        id_list = self.db.cursor.execute(query, values).fetchall()
+        print(kwargs)
+
         if id_list == []:
             return super().insert(**kwargs)
         else:
@@ -116,38 +123,57 @@ class MethodTable(Table):
             }
         super().__init__(db, table_name, columns)
         if len(param_def_dict) != 0: 
-            self.db.cursor.execute(f"CREATE UNIQUE INDEX IF NOT EXISTS index_{table_name} ON {table_name}({', '.join(param_def_dict.keys())})")
+            self.db.cursor.execute(f"CREATE UNIQUE INDEX IF NOT EXISTS index_{self.table_name} ON {self.table_name}({', '.join(param_def_dict.keys())})")
     
     def insert(self, **kwargs):
-        condition = ' AND '.join([f'{k}="{v}"' if isinstance(v, str) else f'{k}={v}' for k, v in kwargs.items()])
-        id_list = self.db.cursor.execute(f"SELECT method_id FROM {self.table_name} WHERE {condition}").fetchall()
+        condition = ' AND '.join([f'{k.replace(" ", "_")}=?' for k in kwargs.keys()])
+        values = list(kwargs.values())
+
+        query = f"SELECT method_id FROM {self.table_name} WHERE {condition}"
+        id_list = self.db.cursor.execute(query, values).fetchall()
+        print(kwargs)
         if id_list == []:
             return super().insert(**kwargs)
         else:
             return id_list[0][0] 
 
+def image_def(i):
+    return {f'image_{i}_name': 'TEXT DEFAULT NULL', f'image_{i}': 'BLOB DEFAULT NULL'}
+
 class ResultTable(Table):
-    def __init__(self, db: Database, task: str, rst_def_dict: dict=None, max_image_num: int=10) -> None:
+    def __init__(self, db: Database, task: str, rst_def_dict: dict=None, default_image_num: int=10) -> None:
         columns = {
             'experiment_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
-            **{f'image_{i}': 'BLBO DEFAULT NULL' for i in range(max_image_num)},
             **rst_def_dict,
+            **{k:v for i in range(default_image_num) for k,v in image_def(i).items()},
         }
         table_name = f"result_{task}"
         super().__init__(db, table_name, columns)
-        self.max_image_num = max_image_num
+
+        pattern = re.compile(r'image_(\d+)')
+        self.max_image_num = -1
+        for name in self.columns:
+            match = pattern.match(name)
+            if match:
+                self.max_image_num = max(self.max_image_num, int(match.group(1)))
 
     def record_rst(self, experiment_id:int, **rst_dict:dict):
         self.insert(experiment_id=experiment_id, **rst_dict)
 
-    def record_image(self, experiment_id:int, image_list:typing.List[typing.Union[Image.Image, str]]=[]):
-        for i, image in enumerate(image_list):
-            if isinstance(image, Image.Image):
+    def record_image(self, experiment_id:int, **image_dict:typing.Dict[str, typing.Union[Image.Image, str, bytearray, bytes]]):        
+        for i, image_key in enumerate(image_dict.keys()):
+            if i > self.max_image_num:
+                self.add_column(f'image_{i}_name', 'TEXT DEFAULT NULL')
+                self.add_column(f'image_{i}', 'BLOB DEFAULT NULL')
+            if isinstance(image_dict[image_key], Image.Image):
                 image = BytesIO()
-                image_list[i].save(image, format='PNG')
+                image_dict[image_key].save(image, format='PNG')
                 image = image.getvalue()
-            elif isinstance(image, str):
-                image = open(image, 'rb').read()
+            elif isinstance(image_dict[image_key], str):
+                image = open(image_dict[image_key], 'rb').read()
+            print(type(image_key))
+            print(type(image))
+            self.update(f"experiment_id={experiment_id}", **{f'image_{i}_name': image_key})
             self.update(f"experiment_id={experiment_id}", **{f'image_{i}': image})
 
 
