@@ -48,7 +48,7 @@ def merge_db(db_path1:str, db_path2:str):
         copy_table(db1, db2, table_name)
 
 def main():
-    parser = argparse.ArgumentParser(description='Merge two SQLite databases.')
+    parser = argparse.ArgumentParser(description='Merge two SQLite databases. For now, the merged two databases must have the same schema.')
     parser.add_argument('db_path_destination', type=str, help='Destination database file path.')
     parser.add_argument('db_path_source', type=str, help='Source database file path.')
     args = parser.parse_args()

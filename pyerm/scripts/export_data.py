@@ -28,6 +28,7 @@ import pandas as pd
 import sqlite3
 import argparse
 import os
+import shutil
 from zipfile import ZipFile
 
 USER_HOME = os.path.expanduser('~')
@@ -50,7 +51,7 @@ def export_data(db_path:str, output_dir:str):
         df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
         if table_name.startswith("result_"):
             for col in df.columns:
-                if col.startswith("image_") and not col.endswith("_name"):
+                if col.startswith("image_") and not col.endswith("_name") and not df[f"{col}_name"].isnull().all():
                     img_paths = []
                     for i, row in df.iterrows():
                         img_data = row[col]
@@ -88,14 +89,14 @@ def zip_dir(dir_path:str, zip_path:str, remove_original=False):
                 
                 print(file_path)
     if remove_original:
-        os.rmdir(dir_path)
+        shutil.rmtree(dir_path)
         
 
 
 def main():
     parser = argparse.ArgumentParser(description="Export the content of a SQLite database to an Excel file")
     parser.add_argument('db_path', type=str, nargs='?', default=None, help='The path of the database file')
-    parser.add_argument('output_dir', type=str, nargs='?', default="~/experiment_record", help='The dir path of the output file')
+    parser.add_argument('output_dir', type=str, nargs='?', default="./", help='The dir path of the output file')
     args = parser.parse_args()
     if args.db_path is None:
         args.db_path = os.path.join(USER_HOME, 'experiment.db')

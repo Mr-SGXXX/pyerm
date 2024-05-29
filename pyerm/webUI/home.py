@@ -40,7 +40,7 @@ def home():
         st.markdown('Export Experiment Data')
         if st.checkbox('Download Excel & Result Images as ZIP'):
             download_zip()
-        elif st.checkbox('Download raw db file'):
+        if st.checkbox('Download raw db file'):
             download_db()
 
 
@@ -56,7 +56,7 @@ def title():
     st.markdown(f"**Disclaimer**: This is a demo version. The actual version is not available yet.")
 
 def load_db():
-    st.markdown('## Load Database')
+    st.markdown('## Load Database (PyERM only supports local SQLite database for now)')
     db_path = st.text_input("Database Path", value=st.session_state.db_path)
     if st.button('Change Database Path'):
         st.session_state.db_path = db_path
@@ -88,7 +88,7 @@ def download_zip():
     st.download_button(
             label="Download Excel&Images as ZIP",
             data=st.session_state.zip,
-            file_name=f"{os.path.basename(st.session_state.db_path)}.zip",
+            file_name=f"{os.path.basename(os.path.splitext(st.session_state.db_path)[0])}.zip",
             mime="application/zip"
         )
         

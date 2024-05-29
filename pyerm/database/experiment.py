@@ -25,7 +25,8 @@
 import os
 import typing
 from PIL import Image
-import atexit
+import traceback
+import sys
 from copy import deepcopy
 
 from .dbbase import Database
@@ -115,6 +116,10 @@ class Experiment:
             The experiment ID
 
         """
+        def handle_exception(exc_type, exc_value, exc_traceback):
+            error_info = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+            self.experiment_table.experiment_failed(self._id, error_info)
+            sys.__excepthook__(exc_type, exc_value, exc_traceback)
         assert self._data is not None, 'Data not initialized, run data_init() first'
         assert self._method is not None, 'Method not initialized, run method_init() first'
         assert self._task is not None, 'Task not initialized, run task_init() first'
@@ -124,7 +129,7 @@ class Experiment:
             experimenters = ','.join(experimenters)
         self._id = self.experiment_table.experiment_start(description, self._method, self._method_id, self._data, self._data_id, self._task, start_time, tags, experimenters)
         self.run_times += 1
-        atexit.register(self.experiment_table.experiment_failed, self._id)
+        sys.excepthook = handle_exception
         return self._id
     
     def experiment_over(self, rst_dict:typing.Dict[str, typing.Any], image_dict:typing.Dict[str, typing.Union[Image.Image, str, bytearray, bytes]]={}, end_time:float=None, useful_time_cost:float=None) -> None:
@@ -158,7 +163,7 @@ class Experiment:
         self.rst_table.record_image(self._id, **image_dict)
         self.experiment_table.experiment_over(self._id, end_time=end_time, useful_time_cost=useful_time_cost)
         self._id = None
-        atexit.unregister(self.experiment_table.experiment_failed)
+        sys.excepthook = sys.__excepthook__
         
 
     def experiment_failed(self, error_info:str, end_time:float=None) -> None:
@@ -316,3 +321,5 @@ def auto_detect_def(param_dict:typing.Dict[str, typing.Any]) -> typing.Dict[str,
             except:
                 raise TypeError(f'Unsupported type for DB: {type(v)}, consider to convert it to str or bytes.')
     return param_def_dict
+
+

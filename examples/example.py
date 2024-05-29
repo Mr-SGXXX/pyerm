@@ -81,7 +81,7 @@ def demo_experiment(exp: pyerm.Experiment):
     ax.set_title('KMeans Clustering of 2D Gaussian Data')
     ax.set_xlabel('X1')
     ax.set_ylabel('X2')
-
+    # raise RuntimeError('This is a demo error to test the error handling function.')
     buf = BytesIO()
     fig.savefig(buf, format='png')
     buf.seek(0)

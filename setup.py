@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.3
+# Version: 0.2.4
 from setuptools import setup, find_packages
 
 with open("README.md", "r", encoding="utf-8") as f:
@@ -50,7 +50,6 @@ setup(
         ],
     },
     install_requires=[
-        "zipfile",
         "pandas",
         "pillow",
         "xlsxwriter",

@@ -28,6 +28,7 @@ import re
 from time import strftime, time, localtime
 import typing
 import traceback
+import sys
 
 from .dbbase import Table, Database
 
@@ -71,8 +72,10 @@ class ExperimentTable(Table):
             end_time = time()
         end_time = localtime(end_time)
         end_time = strftime("%Y-%m-%d %H:%M:%S", end_time)
+        print(error_info)
         if error_info is None:
             error_info = traceback.format_exc()
+            print(error_info)
         super().update(f"id={experiment_id}", end_time=strftime(end_time), status='failed', failed_reason=error_info)
 
     def get_experiment(self, experiment_id:int) -> dict:
@@ -141,7 +144,7 @@ def image_def(i):
     return {f'image_{i}_name': 'TEXT DEFAULT NULL', f'image_{i}': 'BLOB DEFAULT NULL'}
 
 class ResultTable(Table):
-    def __init__(self, db: Database, task: str, rst_def_dict: dict=None, default_image_num: int=10) -> None:
+    def __init__(self, db: Database, task: str, rst_def_dict: dict=None, default_image_num: int=2) -> None:
         columns = {
             'experiment_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
             **rst_def_dict,
@@ -165,6 +168,7 @@ class ResultTable(Table):
             if i > self.max_image_num:
                 self.add_column(f'image_{i}_name', 'TEXT DEFAULT NULL')
                 self.add_column(f'image_{i}', 'BLOB DEFAULT NULL')
+                self.max_image_num += 1
             if isinstance(image_dict[image_key], Image.Image):
                 image = BytesIO()
                 image_dict[image_key].save(image, format='PNG')

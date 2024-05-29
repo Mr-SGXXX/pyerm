@@ -4,3 +4,4 @@ pyerm.egg-info
 __pycache__
 *.DS_Store
 .vscode
+*.baiduyun.*
