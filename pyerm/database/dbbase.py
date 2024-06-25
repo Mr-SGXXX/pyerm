@@ -95,7 +95,9 @@ class Table:
                 for column, definition in list(columns.items()):
                     if 'VIRTUAL' in definition:
                         del columns[column.replace(' ', '_')]
-            assert columns is None or list(columns.keys()) == list([column[1] for column in self.db.cursor.execute(f'PRAGMA table_info({table_name})').fetchall()]), f'Columns do not match for table {table_name}, consider to check or change table name'
+            assert columns is None or list([col for col in columns.keys() if not str(col).startswith("image_")]) == \
+                list([column[1] for column in self.db.cursor.execute(f'PRAGMA table_info({table_name})').fetchall() if not str(column[1]).startswith("image_")]), \
+                    f'Columns(except images) do not match for table {table_name}, consider to check or change table name'
             if self.db.info:
                 print(f'Table {table_name} already exists')
         self.primary_key = [column[1] for column in self.db.cursor.execute(f'PRAGMA table_info({table_name})').fetchall() if column[5] == 1]
