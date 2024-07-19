@@ -63,12 +63,12 @@ class Experiment:
     Usage
     -----
     >>> exp = Experiment()
-    >>> exp.data_init('data', {'a': 1, 'b': 2})
-    >>> exp.method_init('method', {'c': 3, 'd': 4})
+    >>> exp.data_init('data', {'data_param1': 1, 'data_param2': 2})
+    >>> exp.method_init('method', {'method_param1': 3, 'method_param2': 4})
     >>> exp.task_init('task')
     >>> exp.experiment_start('description')
-    >>> exp.detail_update({'g': 7, 'h': 8})
-    >>> exp.experiment_over({'i': 9, 'j': 10})
+    >>> exp.detail_update({'detail_info1': 7, 'detail_info2': 8})
+    >>> exp.experiment_over(rst_dict={'result_score1': 9, 'result_score2': 10}, image_dict={'image1': Image.open('1.png'), 'image2': '2.png'})
 
     For more detailed example, please refer to the 'examples' directory
 

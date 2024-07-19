@@ -140,45 +140,43 @@ class MethodTable(Table):
         else:
             return id_list[0][0] 
 
-def image_def(i):
-    return {f'image_{i}_name': 'TEXT DEFAULT NULL', f'image_{i}': 'BLOB DEFAULT NULL'}
+# def image_def(i):
+#     return {f'image_{i}_name': 'TEXT DEFAULT NULL', f'image_{i}': 'BLOB DEFAULT NULL'}
 
 class ResultTable(Table):
-    def __init__(self, db: Database, task: str, rst_def_dict: dict=None, default_image_num: int=2) -> None:
+    def __init__(self, db: Database, task: str, rst_def_dict: dict=None) -> None:
         columns = {
             'experiment_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
             **rst_def_dict,
-            **{k:v for i in range(default_image_num) for k,v in image_def(i).items()},
         }
         table_name = f"result_{task}"
         super().__init__(db, table_name, columns)
 
         pattern = re.compile(r'image_(\d+)')
-        self.max_image_num = -1
+        self.max_image_index = -1
         for name in self.columns:
             match = pattern.match(name)
             if match:
-                self.max_image_num = max(self.max_image_num, int(match.group(1)))
+                self.max_image_index = max(self.max_image_index, int(match.group(1)))
 
     def record_rst(self, experiment_id:int, **rst_dict:dict):
         self.insert(experiment_id=experiment_id, **rst_dict)
 
     def record_image(self, experiment_id:int, **image_dict:typing.Dict[str, typing.Union[Image.Image, str, bytearray, bytes]]):        
         for i, image_key in enumerate(image_dict.keys()):
-            if i > self.max_image_num:
+            if i > self.max_image_index:
                 self.add_column(f'image_{i}_name', 'TEXT DEFAULT NULL')
                 self.add_column(f'image_{i}', 'BLOB DEFAULT NULL')
-                self.max_image_num += 1
+                self.max_image_index += 1
             if isinstance(image_dict[image_key], Image.Image):
                 image = BytesIO()
                 image_dict[image_key].save(image, format='PNG')
                 image = image.getvalue()
             elif isinstance(image_dict[image_key], str):
                 image = open(image_dict[image_key], 'rb').read()
-            print(type(image_key))
-            print(type(image))
-            self.update(f"experiment_id={experiment_id}", **{f'image_{i}_name': image_key})
-            self.update(f"experiment_id={experiment_id}", **{f'image_{i}': image})
+            # print(type(image_key))
+            # print(type(image))
+            self.update(f"experiment_id={experiment_id}", **{f'image_{i}_name': image_key, f'image_{i}': image})
 
 
 class DetailTable(Table):

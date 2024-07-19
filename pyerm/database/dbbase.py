@@ -82,6 +82,7 @@ class Table:
         table_name = table_name.strip().replace(' ', '_')
         self.table_name = table_name
         self._column = None
+        self._primary_key = None
         if not table_exists(db, table_name):
             assert columns, 'Columns must be provided when creating a new table'
             columns_str = ', '.join([f"{key.strip().replace(' ', '_')} {value}" for key, value in columns.items()])
@@ -95,13 +96,12 @@ class Table:
                 for column, definition in list(columns.items()):
                     if 'VIRTUAL' in definition:
                         del columns[column.replace(' ', '_')]
-            assert columns is None or list([col for col in columns.keys() if not str(col).startswith("image_")]) == \
+            assert columns is None or list(columns.keys()) == \
                 list([column[1] for column in self.db.cursor.execute(f'PRAGMA table_info({table_name})').fetchall() if not str(column[1]).startswith("image_")]), \
                     f'Columns(except images) do not match for table {table_name}, consider to check or change table name'
             if self.db.info:
                 print(f'Table {table_name} already exists')
-        self.primary_key = [column[1] for column in self.db.cursor.execute(f'PRAGMA table_info({table_name})').fetchall() if column[5] == 1]
-    
+        
     def insert(self, **kwargs) -> int:
         assert len(kwargs) <= len(self.columns), 'Parameter inputted too much'
         columns = ', '.join([key.replace(' ', '_') for key in kwargs.keys()])
@@ -139,6 +139,12 @@ class Table:
             self._column = [column[1] for column in self.db.cursor.execute(f'PRAGMA table_info({self.table_name})').fetchall()]
         return self._column
 
+    @property
+    def primary_key(self):
+        if self._primary_key is None:
+            self._primary_key = [column[1] for column in self.db.cursor.execute(f'PRAGMA table_info({self.table_name})').fetchall() if column[5] == 1]
+        return self._primary_key
+    
     def __len__(self):
         return len(self.select())
     
