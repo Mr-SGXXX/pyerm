@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.4
+# Version: 0.2.6
 
 from PIL import Image
 from io import BytesIO
@@ -140,14 +140,15 @@ class MethodTable(Table):
         else:
             return id_list[0][0] 
 
-# def image_def(i):
-#     return {f'image_{i}_name': 'TEXT DEFAULT NULL', f'image_{i}': 'BLOB DEFAULT NULL'}
+def image_def(i):
+    return {f'image_{i}_name': 'TEXT DEFAULT NULL', f'image_{i}': 'BLOB DEFAULT NULL'}
 
 class ResultTable(Table):
-    def __init__(self, db: Database, task: str, rst_def_dict: dict=None) -> None:
+    def __init__(self, db: Database, task: str, rst_def_dict: dict=None, default_image_num: int=2) -> None:
         columns = {
             'experiment_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
             **rst_def_dict,
+            **{k:v for i in range(default_image_num) for k,v in image_def(i).items()},
         }
         table_name = f"result_{task}"
         super().__init__(db, table_name, columns)
@@ -176,7 +177,9 @@ class ResultTable(Table):
                 image = open(image_dict[image_key], 'rb').read()
             # print(type(image_key))
             # print(type(image))
-            self.update(f"experiment_id={experiment_id}", **{f'image_{i}_name': image_key, f'image_{i}': image})
+            self.update(f"experiment_id={experiment_id}", **{f'image_{i}_name': image_key})
+            self.update(f"experiment_id={experiment_id}", **{f'image_{i}': image})
+
 
 
 class DetailTable(Table):

@@ -87,7 +87,7 @@ def zip_dir(dir_path:str, zip_path:str, remove_original=False):
                 file_path = os.path.join(root, file)
                 zipf.write(file_path, os.path.relpath(file_path, dir_path))
                 
-                print(file_path)
+                # print(file_path)
     if remove_original:
         shutil.rmtree(dir_path)
         

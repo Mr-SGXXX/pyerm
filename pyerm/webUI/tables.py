@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.4
+# Version: 0.2.6
 
 import pandas as pd
 from PIL import Image
@@ -29,7 +29,9 @@ from io import BytesIO
 import streamlit as st
 import os
 import re
+import tempfile
 
+from pyerm.database.utils import delete_failed_experiments
 from pyerm.database.dbbase import Database
 
 def tables():
@@ -59,6 +61,12 @@ def select_tables():
         img_str = image_to_base64(image)
         return f'<a href="data:image/jpeg;base64,{img_str}" target="_blank" title="{image_name}"><img src="data:image/jpeg;base64,{img_str}" width="100"></a>'
 
+    def fold_detail_row(row, col_name):
+        if row[col_name]:
+            return f'<details><summary>Details</summary>{row[col_name]}</details>'
+        else:
+            return 'None'
+
     db = Database(st.session_state.db_path, output_info=False)
     table_name = st.session_state.table_name
     if st.session_state.sql is not None:
@@ -74,6 +82,8 @@ def select_tables():
         data = db[table_name].select()
         columns = [column[0] for column in db.cursor.description]
         df = pd.DataFrame(data, columns=columns)
+    
+    # special process for image columns
     columns_keep = [col for col in df.columns if not col.startswith("image_")]
     pattern = re.compile(r'image_(\d+)')
     max_image_num = -1
@@ -85,8 +95,20 @@ def select_tables():
         if f'image_{i}' in df.columns and not df[f'image_{i}_name'].isnull().all():
             df[f'image_{i}'] = df.apply(lambda x: make_image_clickable(x[f'image_{i}_name'], x[f'image_{i}']), axis=1)
             columns_keep.append(f'image_{i}')
+            
+    if "failed_reason" in df.columns:
+        df['failed_reason'] = df.apply(lambda x: fold_detail_row(x, 'failed_reason'), axis=1)
     df = df[columns_keep]
+    
+    if st.button('Refresh'):
+        st.session_state.table_name = table_name
     st.write('## Table:', table_name)
+    if table_name == 'experiment_list':
+        if st.checkbox('Delete all failed records'):
+            st.write('**Warning: This operation will delete all failed records and their results, which cannot be undone.**')
+            if st.button(f"Confirm"):
+                delete_failed_experiments(db)
+                st.session_state.table_name = table_name
     st.write(df.to_html(escape=False, columns=columns_keep), unsafe_allow_html=True)
     
     # st.dataframe(df[columns_keep])

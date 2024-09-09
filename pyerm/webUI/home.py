@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.4
+# Version: 0.2.6
 
 import streamlit as st
 import os
@@ -56,7 +56,8 @@ def title():
     st.markdown(f"**Disclaimer**: This is a demo version. The actual version is not available yet.")
 
 def load_db():
-    st.markdown('## Load Database (PyERM only supports local SQLite database for now)')
+    st.markdown('## Load Database')
+    st.markdown("### **(PyERM only supports local SQLite database for now)**")
     db_path = st.text_input("Database Path", value=st.session_state.db_path)
     if st.button('Change Database Path'):
         st.session_state.db_path = db_path
