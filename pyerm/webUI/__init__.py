@@ -21,3 +21,6 @@
 # SOFTWARE.
 
 # Version: 0.2.4
+import os
+
+PYERM_HOME = os.path.join(os.path.expanduser('~'), '.pyerm')

@@ -20,7 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.6
+# Version: 0.2.7
+
+from time import time
 
 from .dbbase import Database
 
@@ -33,3 +35,13 @@ def delete_failed_experiments(db:Database):
         task_table = db[f"result_{task}"]
         task_table.delete(f"experiment_id={experiment_id}")
         experiment_table.delete(f"id={experiment_id}")
+    
+    # # delete stuck running experiments that have been running for more than 24 hours
+    # running_experiments = experiment_table.select('id', 'task', 'start_time', where="status='running'")
+    # for experiment in running_experiments:
+    #     experiment_id = experiment[0]
+    #     task = experiment[1]
+    #     if time() - experiment[2] > 86400:
+    #         task_table = db[f"result_{task}"]
+    #         task_table.delete(f"experiment_id={experiment_id}")
+    #         experiment_table.delete(f"id={experiment_id}")

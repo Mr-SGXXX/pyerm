@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.6
+# Version: 0.2.7
 
 from PIL import Image
 from io import BytesIO
@@ -72,10 +72,10 @@ class ExperimentTable(Table):
             end_time = time()
         end_time = localtime(end_time)
         end_time = strftime("%Y-%m-%d %H:%M:%S", end_time)
-        print(error_info)
+        # print(error_info)
         if error_info is None:
             error_info = traceback.format_exc()
-            print(error_info)
+            # print(error_info)
         super().update(f"id={experiment_id}", end_time=strftime(end_time), status='failed', failed_reason=error_info)
 
     def get_experiment(self, experiment_id:int) -> dict:
@@ -105,7 +105,7 @@ class DataTable(Table):
 
         query = f"SELECT data_id FROM {self.table_name} WHERE {condition}"
         id_list = self.db.cursor.execute(query, values).fetchall()
-        print(kwargs)
+        # print(kwargs)
 
         if id_list == []:
             return super().insert(**kwargs)
@@ -134,7 +134,7 @@ class MethodTable(Table):
 
         query = f"SELECT method_id FROM {self.table_name} WHERE {condition}"
         id_list = self.db.cursor.execute(query, values).fetchall()
-        print(kwargs)
+        # print(kwargs)
         if id_list == []:
             return super().insert(**kwargs)
         else:

@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.4
+# Version: 0.2.7
 
 import os
 import typing
@@ -32,9 +32,9 @@ from copy import deepcopy
 from .dbbase import Database
 from .tables import ExperimentTable, MethodTable, ResultTable, DetailTable, DataTable
 
+PYERM_HOME = os.path.join(os.path.expanduser('~'), '.pyerm')
 __all__ = ['Experiment']
 
-USER_HOME = os.path.expanduser('~')
 
 class Experiment:
     """
@@ -75,7 +75,7 @@ class Experiment:
     """
     def __init__(self, db_path:str=None):
         if db_path is None:
-            db_path = os.path.join(USER_HOME, 'experiment.db')
+            db_path = os.path.join(PYERM_HOME, 'experiment.db')
         self._db = Database(db_path)
         self.experiment_table = ExperimentTable(self._db)
         self.parameter_table = None

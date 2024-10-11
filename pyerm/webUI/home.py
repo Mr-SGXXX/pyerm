@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.6
+# Version: 0.2.7
 
 import streamlit as st
 import os
@@ -28,8 +28,7 @@ import subprocess
 from importlib.metadata import version
 
 from pyerm.database.dbbase import Database
-
-USER_HOME = os.path.expanduser("~")
+from pyerm.webUI import PYERM_HOME
 
 REPO_URL = "https://github.com/Mr-SGXXX/pyerm"
 
@@ -42,6 +41,7 @@ def home():
             download_zip()
         if st.checkbox('Download raw db file'):
             download_db()
+    clean_cache()
 
 
 def title():
@@ -68,7 +68,7 @@ def load_db():
         st.write(f"Database not found. Please input the correct path.")
 
 def export_data():
-    output_dir_path = f"{USER_HOME}/.tmp"
+    output_dir_path = f"{PYERM_HOME}/.tmp"
     if not os.path.exists(output_dir_path):
         os.makedirs(output_dir_path)
     db_name = os.path.basename(st.session_state.db_path)
@@ -105,3 +105,11 @@ def download_db():
         )
     
 
+def clean_cache():
+    st.write('## Clean Cache')
+    st.write('Cache is used to store temporary files, such as result images.')
+    if st.checkbox('I want to clean cache'):
+        st.write('This will delete the cache folder and all its contents, which cannot be undone.')
+        if st.button('Confirm'):
+            subprocess.run(["rm", "-rf", os.path.join(PYERM_HOME, '.cache')])
+            st.write('Cache cleaned successfully.')

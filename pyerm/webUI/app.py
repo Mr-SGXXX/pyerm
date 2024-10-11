@@ -20,19 +20,34 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.4
+# Version: 0.2.7
 
 import streamlit as st
 import os
+import configparser
 
 from home import home
 from tables import tables
 
-USER_HOME = os.path.expanduser('~')
+from pyerm.webUI import PYERM_HOME
+
 
 def init():
+    config = configparser.ConfigParser()
+    if not os.path.exists(PYERM_HOME):
+        os.makedirs(PYERM_HOME)
+        config['DEFAULT']['db_path'] = os.path.join(PYERM_HOME, 'experiment.db')
+    else:
+        config.read(os.path.join(PYERM_HOME, 'config.ini'))
+    
+    cache_dir = os.path.join(PYERM_HOME, '.cache')
+    if not os.path.exists(cache_dir):
+        os.makedirs(cache_dir)
+        
     if 'db_path' not in st.session_state:
-        st.session_state.db_path = os.path.join(USER_HOME, 'experiment.db')
+        st.session_state.db_path = config.get('DEFAULT', 'db_path')
+    else:
+        config.set('DEFAULT', 'db_path', st.session_state.db_path)
     if 'table_name' not in st.session_state:
         st.session_state.table_name = None
     if 'sql' not in st.session_state:
@@ -41,6 +56,12 @@ def init():
         st.session_state.zip = None
     if 'last_version' not in st.session_state:
         st.session_state.last_version = None
+    if 'selected_row' not in st.session_state:
+        st.session_state.selected_row = None
+        
+    with open(os.path.join(PYERM_HOME, 'config.ini'), 'w') as f:
+        config.write(f)
+
 
 
 def main():
