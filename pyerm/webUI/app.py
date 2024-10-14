@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.7
+# Version: 0.2.8
 
 import streamlit as st
 import os
@@ -28,6 +28,7 @@ import configparser
 
 from home import home
 from tables import tables
+from details import details
 
 from pyerm.webUI import PYERM_HOME
 
@@ -58,6 +59,8 @@ def init():
         st.session_state.last_version = None
     if 'selected_row' not in st.session_state:
         st.session_state.selected_row = None
+    if 'cur_detail_id' not in st.session_state:
+        st.session_state.cur_detail_id = None
         
     with open(os.path.join(PYERM_HOME, 'config.ini'), 'w') as f:
         config.write(f)
@@ -69,9 +72,11 @@ def main():
     st.set_page_config(page_title="PyERM WebUI", page_icon="📊", layout="wide", initial_sidebar_state="auto")
     st.sidebar.title("PyERM WebUI")
     st.sidebar.markdown("## Please select a page")
-    page = st.sidebar.radio("Page to select:", ["Home", "Tables"], index=0)
+    page = st.sidebar.radio("Page to select:", ["Home", "Details","Tables"], index=0)
     if page == "Home":
         home()
+    elif page == "Details":
+        details()
     elif page == "Tables":
         tables()
 

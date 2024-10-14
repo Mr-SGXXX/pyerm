@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.6
+# Version: 0.2.8
 
 import sqlite3
 import re
@@ -43,14 +43,6 @@ class Database:
         else:
             raise ValueError(f'Table or View {name} does not exist')
         
-    def __setitem__(self, name:str, columns:dict=None, query:str=None):
-        if columns is not None and query is None:
-            return Table(self, name, columns)
-        elif columns is None and query is not None:
-            return View(self, name, query)
-        else:
-            raise ValueError('Either columns or query must be provided and the other must be None')
-    
     def __delitem__(self, name:str):
         if name in self.table_names:
             self.cursor.execute(f'DROP TABLE {name}')
@@ -122,10 +114,11 @@ class Table:
         self.db.cursor.execute(query, tuple(kwargs.values()))
         self.db.conn.commit()
 
-    def select(self, *columns:str, where:str=None) -> list:
+    def select(self, *columns:str, where:str=None, other:str=None) -> list:
         columns_str = ', '.join([col.replace(' ', '_') for col in columns]) if columns else '*'
         where_clause = f'WHERE {where}' if where else ''
-        query = f'SELECT {columns_str} FROM {self.table_name} {where_clause}'
+        other_clause = f'{other}' if other else ''
+        query = f'SELECT {columns_str} FROM {self.table_name} {where_clause} {other_clause}'
         return self.db.cursor.execute(query).fetchall()
     
     def add_column(self, column_name:str, column_definition:str) -> None:
@@ -178,10 +171,11 @@ class View:
             if self.db.info:
                 print(f'View {view_name} already exists')
     
-    def select(self, *columns:str, where:str=None) -> list:
+    def select(self, *columns:str, where:str=None, other:str=None) -> list:
         columns = ', '.join([col.replace(' ', '_') for col in columns]) if columns else '*'
         where = f'WHERE {where}' if where else ''
-        return self.db.cursor.execute(f'SELECT {columns} FROM {self.view_name} {where}').fetchall()
+        other = f'{other}' if other else ''
+        return self.db.cursor.execute(f'SELECT {columns} FROM {self.view_name} {where} {other}').fetchall()
     
     @property
     def columns(self):
