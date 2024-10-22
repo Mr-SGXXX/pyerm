@@ -40,10 +40,6 @@ def init():
         config['DEFAULT']['db_path'] = os.path.join(PYERM_HOME, 'experiment.db')
     else:
         config.read(os.path.join(PYERM_HOME, 'config.ini'))
-    
-    cache_dir = os.path.join(PYERM_HOME, '.cache')
-    if not os.path.exists(cache_dir):
-        os.makedirs(cache_dir)
         
     if 'db_path' not in st.session_state:
         st.session_state.db_path = config.get('DEFAULT', 'db_path')
@@ -61,6 +57,8 @@ def init():
         st.session_state.selected_row = None
     if 'cur_detail_id' not in st.session_state:
         st.session_state.cur_detail_id = None
+    if 'cur_detail_img_id' not in st.session_state:
+        st.session_state.cur_detail_img_id = None
         
     with open(os.path.join(PYERM_HOME, 'config.ini'), 'w') as f:
         config.write(f)

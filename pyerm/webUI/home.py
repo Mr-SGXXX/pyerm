@@ -24,6 +24,8 @@
 
 import streamlit as st
 import os
+import platform
+import math
 import subprocess
 from importlib.metadata import version
 
@@ -34,6 +36,7 @@ REPO_URL = "https://github.com/Mr-SGXXX/pyerm"
 
 def home():
     title()
+    st.write("---")
     load_db()
     if os.path.exists(st.session_state.db_path) and st.session_state.db_path.endswith('.db'):
         st.markdown('Export Experiment Data')
@@ -41,19 +44,21 @@ def home():
             download_zip()
         if st.checkbox('Download raw db file'):
             download_db()
+    st.write("---")
     clean_cache()
 
 
 def title():
     st.title('Python Experiment Record Manager WebUI')
     st.markdown(f"**Version**: {version('pyerm')}")
-    st.markdown(f"**Repository**: [{REPO_URL}]({REPO_URL})")
+    st.markdown(f"**GitHub Repository**: [{REPO_URL}]({REPO_URL})")
+    st.markdown(f"**PyPI**: [PyERM](https://pypi.org/project/pyerm/)")
     st.markdown(f"**License**: MIT")
     st.markdown(f"**Author**: Yuxuan Shao")
     st.markdown(f"**Description**:")
     st.markdown(f"PyERM is a Python package for managing experiment records.")
     st.markdown(f"This is the web user interface of the PyERM.")
-    st.markdown(f"**Disclaimer**: This is a demo version. The actual version is not available yet.")
+    st.markdown(f"**Disclaimer**: This is a demo version. Bugs may exist. Use at your own risk.")
 
 def load_db():
     st.markdown('## Load Database')
@@ -74,11 +79,11 @@ def export_data():
     db_name = os.path.basename(st.session_state.db_path)
     db_name = os.path.splitext(db_name)[0]
     zip_path = os.path.join(output_dir_path, f"{db_name}.zip")
-    subprocess.run(["export_zip", st.session_state.db_path, output_dir_path])
-    with open(zip_path, "rb") as file:
-        zip = file.read()
-    
-    subprocess.run(["rm", "-f", zip_path])
+    result1 = subprocess.run(["export_zip", st.session_state.db_path, output_dir_path])
+    if result1.returncode == 0:
+        with open(zip_path, "rb") as file:
+            zip = file.read()
+        os.remove(zip_path)
     return zip
 
 def download_zip():
@@ -107,9 +112,27 @@ def download_db():
 
 def clean_cache():
     st.write('## Clean Cache')
-    st.write('Cache is used to store temporary files, such as result images.')
+    st.write('Cache is used to store temporary files, such as configure files.__')
+    st.write(f'Cache folder is located at: **{PYERM_HOME}**')
+    st.write(f'Cache folder size: {get_folder_size(PYERM_HOME)}')
     if st.checkbox('I want to clean cache'):
         st.write('This will delete the cache folder and all its contents, which cannot be undone.')
         if st.button('Confirm'):
-            subprocess.run(["rm", "-rf", os.path.join(PYERM_HOME, '.cache')])
+            subprocess.run(["rm", "-rf", PYERM_HOME])
             st.write('Cache cleaned successfully.')
+            
+def get_folder_size(folder_path):
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(folder_path):
+        for filename in filenames:
+            filepath = os.path.join(dirpath, filename)
+            total_size += os.path.getsize(filepath)
+    return format_size(total_size)
+
+def format_size(size_bytes):
+    units = ["B", "KB", "MB", "GB", "TB"]
+    if size_bytes == 0:
+        return "0 B"
+    index = min(len(units) - 1, int(math.log(size_bytes, 1024)))
+    size = size_bytes / (1024 ** index)
+    return f"{size:.2f} {units[index]}"

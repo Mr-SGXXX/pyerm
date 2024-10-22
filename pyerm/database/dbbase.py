@@ -129,7 +129,8 @@ class Table:
     @property
     def columns(self):
         if self._column is None:
-            self._column = [column[1] for column in self.db.cursor.execute(f'PRAGMA table_info({self.table_name})').fetchall()]
+            self._column = self.db.cursor.execute(f"SELECT * FROM {self.table_name}").description
+            self._column = [column[0] for column in self._column]
         return self._column
 
     @property
