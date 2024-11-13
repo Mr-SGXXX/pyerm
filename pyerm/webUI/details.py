@@ -20,22 +20,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.8
-
+# Version: 0.2.9
+import numpy as np
 import pandas as pd
 import streamlit as st
 import os
 from PIL import Image
-import re
 import io
+from datetime import datetime
+from time import time
 
 from pyerm.database.dbbase import Database
+from pyerm.database.utils import split_result_info, get_result_statistics
 from pyerm.webUI import PYERM_HOME
 
 def details():
     title()
-    if st.button('Refresh', key='refresh1'):
-        st.rerun()
     if os.path.exists(st.session_state.db_path) and st.session_state.db_path.endswith('.db'):
         db = Database(st.session_state.db_path, output_info=False)
         experiment_table = db['experiment_list']
@@ -59,9 +59,15 @@ def details():
             with cols_sidebar[0]:
                 if st.button('Last\nExperiment', disabled=cur_id <= min_id):
                     cur_id = detect_experiment_id(db, False)
+                if st.button('Go to the First'):
+                    st.session_state.cur_detail_id = min_id
+                    st.rerun()
             with cols_sidebar[1]:
                 if st.button('Next\nExperiment', disabled=cur_id >= max_id):
                     cur_id = detect_experiment_id(db)
+                if st.button('Go to the Last'):
+                    st.session_state.cur_detail_id = max_id
+                    st.rerun()
             if cur_id_last != cur_id:
                 st.rerun()
             
@@ -76,42 +82,113 @@ def details():
             st.markdown(f'### Current Experiment ID: {cur_id}')
             
             basic_info, method_info, data_info, result_info = detect_experiment_info(db)
-            st.write('---')
-            st.write('### Basic Information:')
-            st.write(basic_info)
-            st.write('---')
-            st.write('### Method Information:')
-            if method_info is not None:
-                st.write(method_info)
-            else:
-                st.write('No hyperparam setting used by current method.')
-                
-            st.write('---')
-            st.write('### Data Information:')
-            if data_info is not None:
-                st.write(data_info)
-            else:
-                st.write('No hyperparam setting used by current dataset.')
+            basic_information(basic_info)
+            
             
             st.write('---')
-            st.write('### Result Information:')
-            if result_info is not None:
-                result_info, image_dict = split_result_info(result_info)
-                st.write(result_info)
-                selected_img = st.selectbox('**Select Experiment Result Image**', list(image_dict.keys()), key='select_img')
-                if selected_img:
-                    st.image(Image.open(io.BytesIO(image_dict[selected_img])))
+            cols = st.columns(2)
+            with cols[0]:
+                st.write('### Experiment Result:')
+                if result_info is not None:
+                    result_info, image_dict = split_result_info(result_info)
+                    result_info, num_same_setting_records = calculate_result_statistics(db, basic_info, result_info)
+                    selected_img = st.selectbox('**Select Experiment Result Image**', list(image_dict.keys()), key='select_img')
+                    if selected_img:
+                        st.image(Image.open(io.BytesIO(image_dict[selected_img])))
+                    else:
+                        st.write(f'No image detected in experiment with id:{cur_id}.')
+                    st.write("**Result Scores:**")
+                    st.write(result_info)
+                    st.write(f"_**Notice**: The statistics are calculated based on the **{num_same_setting_records}** same setting experiments._")
                 else:
-                    st.write(f'No image detected in experiment with id:{cur_id}.')
-            else:
-                st.write('No result found. Please check the status of the experiment.')
+                    st.write('No result found. Please check the status of the experiment.')
+            with cols[1]:
+                st.write('### Method Paramater Setting:')
+                if method_info is not None: 
+                    method_info.index = [f'Current Experiment Setting']
+                    st.dataframe(method_info.astype(str).transpose(), use_container_width=True)
+                else:
+                    st.write('No hyperparam setting used by current method.')
+                    
+                st.write('---')
+                st.write('### Data Paramater Setting:')
+                if data_info is not None:
+                    data_info.index = [f'Current Experiment Setting']
+                    st.dataframe(data_info.astype(str).transpose(), use_container_width=True)
+                else:
+                    st.write('No hyperparam setting used by current dataset.')
+            
+            if f'detail_{cur_id}' in db.table_names:
+                st.write('---')
+                st.markdown('## Experiment Details Table')
+                detail_table = db[f'detail_{cur_id}']
+                detail_columns = detail_table.columns
+                detail_data = detail_table.select()
+                detail_df = pd.DataFrame(detail_data, columns=detail_columns)
+                st.write(detail_df)
+            
                 
             st.write('---')
             st.markdown('## Delete Current Experiment')
             st.markdown('**Warning**: This operation will delete current experiment record and result, which is irreversible.')
-            if st.checkbox('Delete Current Experiment'):
+            if st.checkbox('Delete Current Experiment', value=False):
                 if st.button('Confirm'):
                     delete_current_experiment(db)
+    if st.sidebar.button('Refresh', key='refresh'):
+        st.rerun()
+
+def basic_information(basic_info:pd.DataFrame):
+    id = basic_info['id'][0]
+    description = basic_info['description'][0]
+    method = basic_info['method'][0]
+    data = basic_info['data'][0]
+    task = basic_info['task'][0]
+    tags = basic_info['tags'][0]
+    experimenters = basic_info['experimenters'][0]
+    start_time = basic_info['start_time'][0]
+    end_time = basic_info['end_time'][0]
+    useful_time_cost = basic_info['useful_time_cost'][0]
+    total_time_cost = basic_info['total_time_cost'][0]
+    status = basic_info['status'][0]
+    failed_reason = basic_info['failed_reason'][0]
+    st.write(f"#### Task: **{task}**") 
+    st.write(f"#### Method: **{method}**") 
+    st.write(f"#### Data: **{data}**") 
+    desp = f"Experiment **ID:{id}** of task **{task}** with method **{method}** and data **{data}**"
+    if experimenters:
+        desp += f" conducted by **{experimenters}**"
+    desp += f" started at **{start_time}** and ended at **{end_time}**."
+    st.write(desp)
+    if status == 'failed':
+        st.write(f"**It failed** due to the following reasons: ")
+        st.code(f"{failed_reason}")
+    elif status == 'finished':
+        st.write(f"**It finished successfully** with **total time cost: {total_time_cost:.2f}s**" + f" and **useful time cost: {useful_time_cost:.2f}s**." if useful_time_cost else ".")
+    else:
+        time_cost = time() - datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S").timestamp()
+        st.write(f"**It is still running**, current time cost is **{time_cost:.2f}s**.")
+    st.write('')
+    if description:
+        st.write(f"_Experimnt Description_: **{description}**")
+    if experimenters:
+        st.write(f"_Experimenters_: **{experimenters}**")
+    if tags:
+        st.write(f"_Tags_: **{tags}**")
+
+def calculate_result_statistics(db, basic_info: pd.DataFrame, result_info: pd.DataFrame):
+    task = basic_info['task'][0]
+    method = basic_info['method'][0]
+    method_id = basic_info['method_id'][0]
+    data = basic_info['data'][0]
+    data_id = basic_info['data_id'][0]
+    
+    statistics, num_same_setting = get_result_statistics(db, task, method, method_id, data, data_id)
+    
+    result_info.index = ['Cur']
+    result_info = pd.concat([result_info, statistics], axis=0)
+    
+    return result_info, num_same_setting
+    
 
 def detect_experiment_id(db, next_flag=True):
     experiment_table = db['experiment_list']
@@ -161,21 +238,6 @@ def detect_experiment_info(db):
 
 
 
-def split_result_info(result_info):
-    columns_keep = [col for col in result_info.columns if not col.startswith("image_")]
-    pattern = re.compile(r'image_(\d+)$')
-    image_dict = {}
-    for name in result_info.columns:
-        match = pattern.match(name)
-        if match and not result_info[name].isnull().all():
-            image_dict[result_info[f"{name}_name"][0]] = result_info[name][0]
-        elif result_info[name].isnull().all():
-            break
-    
-    return result_info[columns_keep], image_dict
-
-
-
 def delete_current_experiment(db):
     experiment_table = db['experiment_list']
     task = experiment_table.select(where=f'id={st.session_state.cur_detail_id}')[0][6]
@@ -184,6 +246,7 @@ def delete_current_experiment(db):
     result_table.delete(f'experiment_id={st.session_state.cur_detail_id}')
     db.conn.commit()
     st.session_state.cur_detail_id = None
+    st.rerun()
 
 def title():
     st.title(f'Experiment Details')

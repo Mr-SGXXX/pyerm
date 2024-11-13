@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.7
+# Version: 0.2.9
 
 from PIL import Image
 from io import BytesIO
@@ -183,11 +183,16 @@ class ResultTable(Table):
 
 
 class DetailTable(Table):
-    def __init__(self, db: Database, method: str, detail_def_dict: dict=None) -> None:
+    def __init__(self, db: Database, experiment_id:int, detail_def_dict: dict=None) -> None:
         columns = {
             'detail_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
-            'experiment_id': 'INTEGER FOREIGN KEY REFERENCES experiment_list(id)',
             **detail_def_dict,
+            'record_time': 'DATETIME DEFAULT CURRENT_TIMESTAMP',
         }
-        table_name = f"detail_\'{method}\'"
+        table_name = f"detail_{experiment_id}"
         super().__init__(db, table_name, columns)
+        
+    def insert(self, **kwargs):
+        cur_time = strftime("%Y-%m-%d %H:%M:%S", localtime(time()))
+        kwargs['record_time'] = strftime(cur_time)
+        return super().insert(**kwargs)

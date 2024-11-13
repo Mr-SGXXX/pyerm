@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.7
+# Version: 0.2.8
 
 import os
 import typing
@@ -190,9 +190,11 @@ class Experiment:
 
     def detail_update(self, detail_dict:typing.Dict[str, typing.Any]):
         """
-        Update the detail information of the experiment, such as the ML training process, etc.
+        Update the detail information what you need of the experiment, such as the ML training process, etc.
+        It will automatically record the time when the detail information is updated
         
         optional function of the Experiment class, use it for better tracking the experiment
+        make sure the detail_dict has consistent format
 
         essential: run experiment_start() first
 
@@ -208,7 +210,7 @@ class Experiment:
         detail_dict = deepcopy(detail_dict)
         if self.detail_table is None:
             detail_def_dict = auto_detect_def(detail_dict)
-            self.detail_table = DetailTable(self._db, self._method, detail_def_dict)
+            self.detail_table = DetailTable(self._db, self._id, detail_def_dict)
         self.detail_table.insert(experiment_id=self._id, **detail_dict)
 
     def data_init(self, data_name:str, param_dict:typing.Dict[str, typing.Any]=None, param_def_dict:typing.Dict[str, str]=None):

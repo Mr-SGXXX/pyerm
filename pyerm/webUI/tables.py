@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.7
+# Version: 0.2.9
 
 import pandas as pd
 from PIL import Image
@@ -40,11 +40,13 @@ def tables():
     if os.path.exists(st.session_state.db_path) and st.session_state.db_path.endswith('.db'):
         detect_tables()
         st.sidebar.write('## SQL Query')
-        if st.sidebar.checkbox('Use Full SQL Sentense For Total DB', False):
+        if st.sidebar.checkbox('Use Full SQL Sentense For Whole DB', False):
             input_full_sql()
         if st.sidebar.checkbox('Use SQL By Columns & Conditions & Tables', False):
             input_sql()
         select_tables()
+    if st.sidebar.button('Refresh', key='refresh'):
+        st.rerun()
 
 def detect_tables():
     st.sidebar.markdown('## Detected Tables')
@@ -56,18 +58,6 @@ def detect_tables():
     st.session_state.table_name = table_name
 
 def select_tables():
-    # def image_to_base64(img, desc):
-    #     buffered = BytesIO(img)
-    #     img_str = base64.b64encode(buffered.getvalue()).decode()
-    #     return img_str
-    
-    # def make_image_clickable(image_name, image, desc):
-    #     img_str = image_to_base64(image, desc)
-    #     if img_str:
-    #         return f'<a href="data:image/jpeg;base64,{img_str}" target="_blank" title="{image_name}"><img src="data:image/jpeg;base64,{img_str}" width="100"></a>'
-    #     else:
-    #         return f'<a href="#" title="None"><img src="#" width="100"></a>'
-    
     def fold_detail_row(row, col_name):
         if row[col_name]:
             detail = row[col_name].replace("\n", "<br>")
@@ -89,45 +79,31 @@ def select_tables():
             return
     else:
         data = db[table_name].select()
-        columns = [column[0] for column in db.cursor.description]
+        columns = [column[0] if column[0] != "end_time" else "finish_time" for column in db.cursor.description]
         df = pd.DataFrame(data, columns=columns)
-    
-    
-    if st.button('Refresh', key='refresh1'):
-        st.session_state.table_name = table_name
-        st.rerun()
     
     
     columns_keep = [col for col in df.columns if not col.startswith("image_")]
     
     if table_name == 'experiment_list':
-        if st.checkbox('Delete all failed and stuck records'):
+        if st.checkbox('Delete all failed and stuck records', value=False):
             st.write('**Warning: This operation will delete all failed records and their results, which cannot be undone.**')
             if st.button(f"Confirm"):
                 delete_failed_experiments(db)
-                st.session_state.table_name = table_name
+                st.rerun()
+    if "failed_reason" in df.columns:
         df['failed_reason'] = df.apply(lambda x: fold_detail_row(x, 'failed_reason'), axis=1)
+    if "useful_time_cost" in df.columns:
         df['useful_time_cost'] = df['useful_time_cost'].apply(lambda x: strftime('%H:%M:%S', gmtime(x)) if not pd.isnull(x) else x) 
+    if "total_time_cost" in df.columns:
         df['total_time_cost'] = df['total_time_cost'].apply(lambda x: strftime('%H:%M:%S', gmtime(x)) if not pd.isnull(x) else x)
-    # elif table_name.startswith("result_"):
-    #     # special process for image columns
-    #     pattern = re.compile(r'image_(\d+)')
-    #     max_image_num = -1
-    #     for name in df.columns:
-    #         match = pattern.match(name)
-    #         if match:
-    #             max_image_num = max(max_image_num, int(match.group(1)))
-                
-    #     for i in range(max_image_num+1):
-    #         if f'image_{i}' in df.columns and not df[f'image_{i}_name'].isnull().all():
-    #             df[f'image_{i}'] = df.apply(lambda x: make_image_clickable(x[f'image_{i}_name'], x[f'image_{i}'], desc=f"{x[f'experiment_id']}_{i}"), axis=1)
-    #             columns_keep.append(f'image_{i}')
     
     df = df[columns_keep]
-    st.write(df.to_html(escape=False, columns=columns_keep), unsafe_allow_html=True)
-    if st.button('Refresh', key='refresh2'):
-        st.session_state.table_name = table_name
-        st.rerun()
+    download_table_as_csv(df)
+    if table_name == 'experiment_list':
+        st.write(df.to_html(escape=False, columns=columns_keep), unsafe_allow_html=True)
+    else:
+        st.write(df)
 
 def input_sql():
     st.sidebar.write('You can set the columns and condition for construct a select SQL sentense for the current table here.')
@@ -139,10 +115,20 @@ def input_sql():
 
 def input_full_sql():
     st.sidebar.write('You can input a full SQL sentense here to select what you need and link different tables or views.')
+    st.sidebar.write('_**Notice**: Drop, Delete are allowed here, but please be careful when using them._')
     sql = st.sidebar.text_area('SQL', value=None, height=200)
     if st.sidebar.button('Run', key='run_full_sql'):
         st.session_state.sql = sql
         st.session_state.table_name = 'SQL Query Results'
+
+def download_table_as_csv(df):
+    csv = df.to_csv(index=False)
+    st.download_button(
+        label="Download as CSV",
+        data=csv,
+        file_name=f"{st.session_state.table_name}.csv",
+        mime="text/csv"
+    )
 
 def title():
     st.title('Tables of the experiment records')
