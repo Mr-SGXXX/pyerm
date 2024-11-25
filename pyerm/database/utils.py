@@ -20,12 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.9
+# Version: 0.3.1
 
 from time import time
 import pandas as pd
 import numpy as np
 import re
+import datetime
 
 from .dbbase import Database
 from .dbbase import View
@@ -40,15 +41,15 @@ def delete_failed_experiments(db:Database):
         task_table.delete(f"experiment_id={experiment_id}")
         experiment_table.delete(f"id={experiment_id}")
 
-    # # delete stuck running experiments that have been running for more than 24 hours
-    # running_experiments = experiment_table.select('id', 'task', 'start_time', where="status='running'")
-    # for experiment in running_experiments:
-    #     experiment_id = experiment[0]
-    #     task = experiment[1]
-    #     if time() - experiment[2] > 86400:
-    #         task_table = db[f"result_{task}"]
-    #         task_table.delete(f"experiment_id={experiment_id}")
-    #         experiment_table.delete(f"id={experiment_id}")
+    # delete stuck running experiments that have been running for more than 24 hours
+    running_experiments = experiment_table.select('id', 'task', 'start_time', where="status='running'")
+    for experiment in running_experiments:
+        experiment_id = experiment[0]
+        task = experiment[1]
+        if time() - datetime.strptime(experiment[2], "%Y-%m-%d %H:%M:%S").timestamp() > 86400:
+            task_table = db[f"result_{task}"]
+            task_table.delete(f"experiment_id={experiment_id}")
+            experiment_table.delete(f"id={experiment_id}")
     
 
 def get_result_statistics(db, task, method, method_id, data, data_id):
@@ -58,7 +59,7 @@ def get_result_statistics(db, task, method, method_id, data, data_id):
     same_setting_id_sql = f"SELECT id FROM experiment_list WHERE method='{method}' AND method_id={method_id} AND data='{data}' AND data_id={data_id} AND task='{task}' AND status='finished'"
     same_setting_id = db.conn.execute(same_setting_id_sql).fetchall()
     if len(same_setting_id) == 0:
-        return None, 0
+        return None, []
     same_setting_id = [str(i[0]) for i in same_setting_id]
     max_score_sql = f"SELECT {','.join([f'MAX({col}) AS {col}' for col in score_columns])} FROM result_{task} WHERE experiment_id IN ({same_setting_id_sql})"
     max_score = pd.read_sql_query(max_score_sql, db.conn)
@@ -96,7 +97,7 @@ def get_result_statistics(db, task, method, method_id, data, data_id):
     median_score = pd.read_sql_query(median_score_sql, db.conn)
     rst = pd.concat([max_score, min_score, avg_score, std_score, median_score], axis=0)
     rst.index = ['Max', 'Min', 'Avg', 'Std', 'Median']
-    return rst, len(same_setting_id)
+    return rst, same_setting_id
     
     
     
@@ -112,3 +113,43 @@ def split_result_info(result_info:pd.DataFrame):
             break
     
     return result_info[columns_keep], image_dict
+
+
+def experiment_id2remark_name(db, experiment_id):
+    task, remark_name = db['experiment_list'].select('task', 'remark', where=f'id={experiment_id}')[0]
+    return remark_name if remark_name else f"{task}_{experiment_id}"
+
+def method_id2remark_name(db, method, method_id):
+    if f'method_{method}' not in db.table_names and f'method_{method}' not in db.view_names:
+        return f"{method_id}"
+    remark_name = db[f'method_{method}'].select('remark', where=f'method_id={method_id}')[0][0]
+    return remark_name if remark_name else f"{method_id}"
+
+def data_id2remark_name(db, data, data_id):
+    if f'data_{data}' not in db.table_names and f'data_{data}' not in db.view_names:
+        return f"{data_id}"
+    remark_name = db[f'data_{data}'].select('remark', where=f'data_id={data_id}')[0][0]
+    return remark_name if remark_name else f"{data_id}"
+
+def experiment_remark_name2id(db, remark_name):
+    try:
+        return db['experiment_list'].select('id', where=f'remark="{remark_name}"')[0][0]
+    except:
+        return -1
+    
+def method_remark_name2id(db, method, remark_name):
+    if f'method_{method}' not in db.table_names and f'method_{method}' not in db.view_names:
+        return -1
+    try:
+        return db[f'method_{method}'].select('method_id', where=f'remark="{remark_name}"')[0][0]
+    except:
+        return -1
+
+def data_remark_name2id(db, data, remark_name):
+    if f'data_{data}' not in db.table_names and f'data_{data}' not in db.view_names:
+        return -1
+    try:
+        return db[f'data_{data}'].select('data_id', where=f'remark="{remark_name}"')[0][0]
+    except:
+        return -1
+    

@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.9
+# Version: 0.3.1
 
 from PIL import Image
 from io import BytesIO
@@ -49,6 +49,7 @@ class ExperimentTable(Table):
             'useful_time_cost': 'REAL DEFAULT NULL',
             'total_time_cost': 'REAL AS (strftime(\"%s\", end_time) - strftime(\"%s\", start_time)) VIRTUAL',
             'status': 'TEXT CHECK(status IN (\"running\", \"finished\", \"failed\"))',
+            'remark': 'TEXT DEFAULT NULL UNIQUE',
             'failed_reason': 'TEXT DEFAULT NULL',
         }
         super().__init__(db, "experiment_list", columns)
@@ -94,6 +95,7 @@ class DataTable(Table):
             columns = {
                 'data_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
                 **param_def_dict,
+                'remark': 'TEXT DEFAULT NULL UNIQUE',
             }
         super().__init__(db, table_name, columns)
         if len(param_def_dict) != 0: 
@@ -123,6 +125,7 @@ class MethodTable(Table):
             columns = {
                 'method_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
                 **param_def_dict,
+                'remark': 'TEXT DEFAULT NULL UNIQUE',
             }
         super().__init__(db, table_name, columns)
         if len(param_def_dict) != 0: 
@@ -145,14 +148,19 @@ def image_def(i):
 
 class ResultTable(Table):
     def __init__(self, db: Database, task: str, rst_def_dict: dict=None, default_image_num: int=2) -> None:
-        columns = {
-            'experiment_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
-            **rst_def_dict,
-            **{k:v for i in range(default_image_num) for k,v in image_def(i).items()},
-        }
         table_name = f"result_{task}"
+        if table_name in db.table_names:
+            columns = None
+        else:
+            assert rst_def_dict is not None, 'Result Dict must be provided when creating a new result table'
+            columns = {
+                'experiment_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+                **rst_def_dict,
+                **{k:v for i in range(default_image_num) for k,v in image_def(i).items()},
+            }
+        
         super().__init__(db, table_name, columns)
-
+        self._non_img_columns = None
         pattern = re.compile(r'image_(\d+)')
         self.max_image_index = -1
         for name in self.columns:
@@ -179,6 +187,12 @@ class ResultTable(Table):
             # print(type(image))
             self.update(f"experiment_id={experiment_id}", **{f'image_{i}_name': image_key})
             self.update(f"experiment_id={experiment_id}", **{f'image_{i}': image})
+    
+    @property
+    def non_img_columns(self):
+        if self._non_img_columns is None:
+            self._non_img_columns = [c for c in self.columns if not c.startswith('image_')]
+        return self._non_img_columns
 
 
 

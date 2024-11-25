@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.9
+# Version: 0.3.1
 
 import streamlit as st
 import os
@@ -31,6 +31,7 @@ import subprocess
 from importlib.metadata import version
 
 from pyerm.database.dbbase import Database
+from pyerm.database.tables import ResultTable
 from pyerm.webUI import PYERM_HOME
 
 REPO_URL = "https://github.com/Mr-SGXXX/pyerm"
@@ -40,6 +41,8 @@ def home():
     st.write("---")
     load_db()
     if os.path.exists(st.session_state.db_path) and st.session_state.db_path.endswith('.db'):
+        st.markdown('### Delete Useless Figures in Database')
+        delete_useless_figures()
         st.markdown('### Export Experiment Data')
         if st.checkbox('Download Excel & Result Images as ZIP', value=False):
             st.write('_This will export all the experiment data in the database as Excel files and images, and pack them into a ZIP file._')
@@ -50,6 +53,8 @@ def home():
             download_db()
     st.write("---")
     clean_cache()
+    if st.sidebar.button('Refresh', key='refresh'):
+        st.rerun()
 
 
 def title():
@@ -67,13 +72,19 @@ def title():
 def load_db():
     st.markdown('## Load Database')
     st.markdown("### **(PyERM only supports SQLite database for now)**")
-    if st.checkbox('I want to Upload Database File from Local', value=False):
-        st.write('_This will upload a database file to the server and save it in the cache folder, which will be used for visualization._')
+    db_path = st.selectbox("Select Recorded Database File", st.session_state.db_path_list, index=st.session_state.db_path_list.index(st.session_state.db_path) if st.session_state.db_path in st.session_state.db_path_list else 0)
+    if db_path is None:
+        db_path = st.session_state.db_path
+    if st.checkbox('Use a new local database file', value=False):
+        db_path = st.text_input("New Database Absolute Path", value=st.session_state.db_path)
+        st.session_state.db_path_list.append(db_path)
+    if st.checkbox('Upload Database File from Local', value=False):
+        st.write('_This will upload a database file to the server and save it in the cache folder, which will be used in this Web UI._')
         st.write('_**Notice**: Please make sure the database file is in SQLite format._')
-        upload_db()
-    db_path = st.text_input("Remote Database Absolute Path", value=st.session_state.db_path)
+        db_path = upload_db()
     if st.button('Change Database Path'):
         st.session_state.db_path = db_path
+        st.rerun()
     st.write(f"Current database path: **{st.session_state.db_path}**")
     if os.path.exists(db_path) and db_path.endswith('.db'):
         st.write(f"Database found succesfully.")
@@ -117,7 +128,23 @@ def download_db():
             file_name=f"{os.path.basename(st.session_state.db_path)}",
             mime="application/sqlite3"
         )
-    
+
+def delete_useless_figures():
+    if st.checkbox('Delete Useless Figures', value=False):
+        st.write('**Notice:**_This will delete all the figures of those experiment without remark name in the database to save space._')
+        if st.button('Confirm'):
+            db = Database(st.session_state.db_path, output_info=False)
+            experiment_table = db['experiment_list']
+            useless_figures_ids = experiment_table.select('id', 'task', where="remark is NULL")
+            for id, task in useless_figures_ids:
+                result_table = ResultTable(db, task)
+                result_table.update(where=f"experiment_id={id}", **{f'image_{i}_name': None for i in range(result_table.max_image_index + 1)})
+                result_table.update(where=f"experiment_id={id}", **{f'image_{i}': None for i in range(result_table.max_image_index + 1)})
+            db.conn.execute("VACUUM")
+            db.conn.commit()
+            st.write('Useless figures deleted successfully.')
+            st.rerun()
+            
     
 def upload_db():
     upload_db_file = st.file_uploader("Upload Database File", type=['db'])
@@ -126,7 +153,9 @@ def upload_db():
         cache_path = os.path.join(PYERM_HOME, name)
         with open(cache_path, "wb") as file:
             file.write(upload_db_file.read())
-        st.session_state.db_path = cache_path
+    else:
+        cache_path = ""
+    return cache_path
 
 def clean_cache():
     st.write('## Cache Files')
@@ -138,8 +167,10 @@ def clean_cache():
     if st.checkbox('I want to clean cache', value=False):
         st.write('_**Notice**: This will delete the cache folder and all its contents, which cannot be undone._')
         if st.button('Confirm'):
+            st.session_state.db_path_list = []
             shutil.rmtree(PYERM_HOME)
             st.write('Cache cleaned successfully.')
+            st.rerun()
 
 def build_tree_string(path, level=0):
     items = sorted(os.listdir(path))

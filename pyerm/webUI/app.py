@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.9
+# Version: 0.3.1
 
 import streamlit as st
 import os
@@ -38,14 +38,22 @@ def init():
     config = configparser.ConfigParser()
     if not os.path.exists(PYERM_HOME):
         os.makedirs(PYERM_HOME)
-        config['DEFAULT']['db_path'] = os.path.join(PYERM_HOME, 'experiment.db')
+        config.set('DEFAULT', 'db_path', os.path.join(PYERM_HOME, 'experiment.db'))
     else:
         config.read(os.path.join(PYERM_HOME, 'config.ini'))
         
     if 'db_path' not in st.session_state:
-        st.session_state.db_path = config.get('DEFAULT', 'db_path')
+        db_path_list = config.get('DEFAULT', 'db_path', fallback=os.path.join(PYERM_HOME, 'experiment.db'))
+        st.session_state.db_path_list = db_path_list.split(',')
+        st.session_state.db_path = st.session_state.db_path_list[0]
     else:
-        config.set('DEFAULT', 'db_path', st.session_state.db_path)
+        db_path_list = config.get('DEFAULT', 'db_path', fallback=os.path.join(PYERM_HOME, 'experiment.db'))
+        db_path_list = db_path_list.split(',')
+        db_path_list = [db_path for db_path in db_path_list if os.path.exists(db_path)]
+        if st.session_state.db_path not in db_path_list and os.path.exists(st.session_state.db_path):
+            db_path_list.append(st.session_state.db_path)
+        st.session_state.db_path_list = db_path_list
+        config.set('DEFAULT', 'db_path', ','.join(db_path_list))
     if 'table_name' not in st.session_state:
         st.session_state.table_name = None
     if 'sql' not in st.session_state:
@@ -62,17 +70,20 @@ def init():
         st.session_state.cur_detail_img_id = None
     if 'recorded_analysis_setting' not in st.session_state:
         st.session_state.recorded_analysis_setting = set()
-        
+    if 'selected_settings' not in st.session_state:
+        st.session_state.selected_settings = []
+    if 'error_flag' not in st.session_state:
+        st.session_state.error_flag = False
+    if 'cur_analysis_task' not in st.session_state:
+        st.session_state.cur_analysis_task = None
     with open(os.path.join(PYERM_HOME, 'config.ini'), 'w') as f:
         config.write(f)
 
-
-
 def main():
-    init()
     st.set_page_config(page_title="PyERM WebUI", page_icon="📊", layout="wide", initial_sidebar_state="auto")
     st.sidebar.title("PyERM WebUI")
     st.sidebar.markdown("## Please select a page")
+    init()
     page = st.sidebar.radio("Page to select:", ["Home", "Details", "Analysis", "Tables"], index=0)
     if page == "Home":
         home()

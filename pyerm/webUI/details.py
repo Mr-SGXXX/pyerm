@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.9
+# Version: 0.3.1
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -31,7 +31,7 @@ from datetime import datetime
 from time import time
 
 from pyerm.database.dbbase import Database
-from pyerm.database.utils import split_result_info, get_result_statistics
+from pyerm.database.utils import split_result_info, get_result_statistics, experiment_remark_name2id
 from pyerm.webUI import PYERM_HOME
 
 def details():
@@ -42,7 +42,7 @@ def details():
         max_id, min_id = experiment_table.select('MAX(id)', 'MIN(id)')[0]
         
         if st.session_state.cur_detail_id is None:
-            cur_id = detect_experiment_id(db)
+            cur_id= detect_experiment_id(db)
         else:
             cur_id = st.session_state.cur_detail_id
         if cur_id is None:
@@ -50,40 +50,52 @@ def details():
         else:
             st.sidebar.markdown('## Choose Experiment')
             cur_id_last = cur_id
-            cur_id = int(st.sidebar.text_input('Experiment ID', key='input_exp_id', value=cur_id))
+            cur_remark_name = experiment_table.select(where=f'id={cur_id}')[0][-2]
+            cur_id = st.sidebar.text_input('Experiment ID or remark name', key='input_exp_id', value=cur_id if cur_remark_name is None else cur_remark_name)
+            if cur_id.isdigit():
+                cur_id = int(cur_id)
+            else:
+                cur_id = experiment_remark_name2id(db, cur_id)
             st.session_state.cur_detail_id = cur_id
             if cur_id_last != cur_id:
                 st.session_state.cur_detail_img_id = 0
+            if st.sidebar.checkbox('Only Show Remarked Experiments', key='only_remark'):
+                only_remark = True
+            else:
+                only_remark = False
             cols_sidebar = st.sidebar.columns(2)
             cur_id_last = cur_id 
             with cols_sidebar[0]:
                 if st.button('Last\nExperiment', disabled=cur_id <= min_id):
-                    cur_id = detect_experiment_id(db, False)
+                    cur_id  = detect_experiment_id(db, False, only_remark=only_remark)
                 if st.button('Go to the First'):
                     st.session_state.cur_detail_id = min_id
                     st.rerun()
             with cols_sidebar[1]:
                 if st.button('Next\nExperiment', disabled=cur_id >= max_id):
-                    cur_id = detect_experiment_id(db)
+                    cur_id = detect_experiment_id(db, True, only_remark=only_remark)
                 if st.button('Go to the Last'):
                     st.session_state.cur_detail_id = max_id
                     st.rerun()
             if cur_id_last != cur_id:
                 st.rerun()
             
-    
+
         if experiment_table.select(where=f'id={cur_id}') == []:
             st.markdown('## Experiment Information')
+            if cur_id == -1:
+                cur_id = 'Unknown'
             st.markdown(f'### Current Experiment ID: {cur_id}')
             st.write(f'Experiment with id:{cur_id} does not exist. Please check the ID.')
         else:
-            
             st.markdown('## Experiment Information')
-            st.markdown(f'### Current Experiment ID: {cur_id}')
+            cur_remark_name = experiment_table.select(where=f'id={cur_id}')[0][-2]
+            st.markdown(f'### Current Experiment ID: {cur_id}' + (f"({cur_remark_name})" if cur_remark_name else ''))
             
             basic_info, method_info, data_info, result_info = detect_experiment_info(db)
             basic_information(basic_info)
             
+            remark_cur_experiment(db)
             
             st.write('---')
             cols = st.columns(2)
@@ -95,6 +107,14 @@ def details():
                     selected_img = st.selectbox('**Select Experiment Result Image**', list(image_dict.keys()), key='select_img')
                     if selected_img:
                         st.image(Image.open(io.BytesIO(image_dict[selected_img])))
+                        with io.BytesIO(image_dict[selected_img]) as buf:
+                            img_data = buf.read()
+                        st.download_button(
+                            label=f"Download {selected_img}",
+                            data=img_data,
+                            file_name=f"{selected_img}.png",
+                            mime="image/png"
+                        )
                     else:
                         st.write(f'No image detected in experiment with id:{cur_id}.')
                     st.write("**Result Scores:**")
@@ -105,6 +125,10 @@ def details():
             with cols[1]:
                 st.write('### Method Paramater Setting:')
                 if method_info is not None: 
+                    method_remark_name = method_info['remark'][0]
+                    if method_remark_name:
+                        st.write(f'_Remark Name_: **{method_remark_name}**')
+                    method_info.drop(columns=['remark'], inplace=True)
                     method_info.index = [f'Current Experiment Setting']
                     st.dataframe(method_info.astype(str).transpose(), use_container_width=True)
                 else:
@@ -113,6 +137,10 @@ def details():
                 st.write('---')
                 st.write('### Data Paramater Setting:')
                 if data_info is not None:
+                    data_remark_name = data_info['remark'][0]
+                    if data_remark_name:
+                        st.write(f'_Remark Name_: **{data_remark_name}**')
+                    data_info.drop(columns=['remark'], inplace=True)
                     data_info.index = [f'Current Experiment Setting']
                     st.dataframe(data_info.astype(str).transpose(), use_container_width=True)
                 else:
@@ -182,7 +210,8 @@ def calculate_result_statistics(db, basic_info: pd.DataFrame, result_info: pd.Da
     data = basic_info['data'][0]
     data_id = basic_info['data_id'][0]
     
-    statistics, num_same_setting = get_result_statistics(db, task, method, method_id, data, data_id)
+    statistics, same_setting_ids = get_result_statistics(db, task, method, method_id, data, data_id)
+    num_same_setting = len(same_setting_ids)
     
     result_info.index = ['Cur']
     result_info = pd.concat([result_info, statistics], axis=0)
@@ -190,21 +219,23 @@ def calculate_result_statistics(db, basic_info: pd.DataFrame, result_info: pd.Da
     return result_info, num_same_setting
     
 
-def detect_experiment_id(db, next_flag=True):
+def detect_experiment_id(db, next_flag=True, only_remark=False):
     experiment_table = db['experiment_list']
     if st.session_state.cur_detail_id is None:
         basic_info = experiment_table.select(other='ORDER BY id DESC LIMIT 1')
         if len(basic_info) == 0:
             return None
         # st.write(basic_info)
-        st.session_state.cur_detail_id = basic_info[0][0]
-        st.session_state.cur_detail_img_id = 0
+    elif only_remark:
+        basic_info = experiment_table.select(where=f'id{">" if next_flag else "<"}{st.session_state.cur_detail_id} AND remark is not NULL', other=f'ORDER BY id {"ASC" if next_flag else "DESC"} LIMIT 1')
     else:
         basic_info = experiment_table.select(where=f'id{">" if next_flag else "<"}{st.session_state.cur_detail_id}', other=f'ORDER BY id {"ASC" if next_flag else "DESC"} LIMIT 1')
+    try:
         st.session_state.cur_detail_id = basic_info[0][0]
         st.session_state.cur_detail_img_id = 0
-        
-    return st.session_state.cur_detail_id
+        return st.session_state.cur_detail_id
+    except:
+        return st.session_state.cur_detail_id
         
 def detect_experiment_info(db):
     experiment_table = db['experiment_list']
@@ -236,7 +267,28 @@ def detect_experiment_info(db):
     basic_info = pd.DataFrame(basic_info, columns=basic_columns)
     return basic_info, method_info, data_info, result_info
 
+def remark_cur_experiment(db):
+    experiment_table = db['experiment_list']
+    if st.checkbox('Remark Current Experiment', key='remark'):
+        remark = st.text_input("Set or change a remark name for current experiment. _Empty means delete remark name._", key='remark_input')
 
+        if st.button('Confirm', key='confirm_remark'):
+            if remark.isnumeric():
+                st.write('Error: Remark name cannot be a positive number.')
+            else:
+                if remark == '':
+                    remark = None
+                try:
+                    experiment_table.update(f'id={st.session_state.cur_detail_id}', remark=remark)
+                    db.conn.commit()
+                except:
+                    st.session_state.error_flag = True
+
+            st.rerun()
+        
+        if st.session_state.error_flag:
+            st.write('Error: Remark name already exists, please choose another one.')
+            st.session_state.error_flag = False
 
 def delete_current_experiment(db):
     experiment_table = db['experiment_list']

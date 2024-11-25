@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.9
+# Version: 0.3.1
 
 import pandas as pd
 from PIL import Image
@@ -70,13 +70,18 @@ def select_tables():
     st.write('## Table:', table_name)
     if st.session_state.sql is not None:
         try:
-            df = pd.read_sql_query(st.session_state.sql, db.conn)
-            st.write(f'### Used SQL: ({st.session_state.sql})')
+            if "SELECT" not in st.session_state.sql.upper():
+                db.conn.execute(st.session_state.sql)
+                st.session_state.sql = None
+                st.rerun()
+            else:
+                df = pd.read_sql_query(st.session_state.sql, db.conn)
+                st.write(f'### Used SQL: ({st.session_state.sql})')
             st.session_state.sql = None
         except Exception as e:
             st.write('SQL Error:', e)
             st.session_state.sql = None
-            return
+            st.rerun()
     else:
         data = db[table_name].select()
         columns = [column[0] if column[0] != "end_time" else "finish_time" for column in db.cursor.description]
@@ -88,10 +93,11 @@ def select_tables():
     if table_name == 'experiment_list':
         if st.checkbox('Delete all failed and stuck records', value=False):
             st.write('**Warning: This operation will delete all failed records and their results, which cannot be undone.**')
+            st.write("_**Notice**: Experiments that have been running for more than 24 hours will also be seen as stucked and deleted._")
             if st.button(f"Confirm"):
                 delete_failed_experiments(db)
                 st.rerun()
-    if "failed_reason" in df.columns:
+    if table_name == 'experiment_list':
         df['failed_reason'] = df.apply(lambda x: fold_detail_row(x, 'failed_reason'), axis=1)
     if "useful_time_cost" in df.columns:
         df['useful_time_cost'] = df['useful_time_cost'].apply(lambda x: strftime('%H:%M:%S', gmtime(x)) if not pd.isnull(x) else x) 

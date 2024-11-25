@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.8
+# Version: 0.3.1
 
 import os
 import typing
@@ -32,7 +32,7 @@ from copy import deepcopy
 from .dbbase import Database
 from .tables import ExperimentTable, MethodTable, ResultTable, DetailTable, DataTable
 
-PYERM_HOME = os.path.join(os.path.expanduser('~'), '.pyerm')
+PYERM_HOME = os.path.join(os.path.expanduser('~'), 'pyerm')
 __all__ = ['Experiment']
 
 
@@ -154,7 +154,7 @@ class Experiment:
 
         """
         assert self._id is not None, 'Experiment not started, run experiment_start() first'
-        assert self.rst_table is None or len(rst_dict) <= len(self.rst_table.columns) - self.rst_table.max_image_num - 1, 'Result definition and result dict length mismatch'
+        assert self.rst_table is None or set(rst_dict.keys()).issubset(set(self.rst_table.non_img_columns)), 'Result definition mismatch'
         rst_dict = deepcopy(rst_dict)
         if self.rst_table is None:
             rst_def_dict = auto_detect_def(rst_dict)
@@ -234,6 +234,7 @@ class Experiment:
             The data ID
 
         """
+        assert " " not in data_name, 'Data name cannot contain space'
         assert param_def_dict is None or len(param_def_dict) == len(param_dict), 'Parameter definition and parameter dict length mismatch'
         self._data = data_name
         param_dict = deepcopy(param_dict)
@@ -268,6 +269,7 @@ class Experiment:
             The method ID
 
         """
+        assert " " not in method_name, 'Method name cannot contain space'
         assert param_def_dict is None or len(param_def_dict) == len(param_dict), 'Parameter definition and parameter dict length mismatch'
         self._method = method_name
         param_dict = deepcopy(param_dict)
@@ -298,6 +300,7 @@ class Experiment:
             The result definition dictionary, contains the result parameter definition, by default None, which means the parameter definition will be automatically detected when the result is recorded
 
         """
+        assert " " not in task_name, 'Task name cannot contain space'
         self._task = task_name
         if rst_def_dict is not None:
             self.rst_table = ResultTable(self._db, task_name, rst_def_dict)

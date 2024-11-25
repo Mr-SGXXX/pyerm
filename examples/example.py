@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.4
+# Version: 0.3.1
 
 # PyERM Usage Example (Clustering)
 
@@ -101,10 +101,12 @@ def demo_experiment(exp: pyerm.Experiment):
 
 # hyperparameters for the experiment
 
-# the default path is '~/experiments.db'
-exp = pyerm.Experiment()
+# the default path is '~/pyerm/experiments.db'
+exp = pyerm.Experiment("./experiments.db")
 for i in range(5):
     demo_experiment(exp)
+
+
 
 
 
