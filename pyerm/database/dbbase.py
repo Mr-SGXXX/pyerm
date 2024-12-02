@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.2.8
+# Version: 0.3.2
 
 import sqlite3
 import re
@@ -31,7 +31,7 @@ class Database:
         self.info = output_info
         self.conn = sqlite3.connect(db_path)
         self.cursor = self.conn.cursor()
-        self.table_names = [table_name[0] for table_name in self.cursor.execute('SELECT name FROM sqlite_master WHERE type="table"').fetchall()]
+        self.table_names = [table_name[0] for table_name in self.cursor.execute('SELECT name FROM sqlite_master WHERE type="table"').fetchall() if not table_name[0].startswith('sqlite')]
         self.view_names = [view_name[0] for view_name in self.cursor.execute('SELECT name FROM sqlite_master WHERE type="view"').fetchall()]
 
 
@@ -108,9 +108,12 @@ class Table:
         self.db.cursor.execute(query)
         self.db.conn.commit()
 
-    def update(self, where:str, **kwargs) -> None:
+    def update(self, where:str=None, **kwargs) -> None:
         set_values = ', '.join([f'{key.replace(" ", "_")}=?' for key in kwargs])
-        query = f'UPDATE {self.table_name} SET {set_values} WHERE {where}'
+        if where is None:
+            query = f'UPDATE {self.table_name} SET {set_values}'
+        else:
+            query = f'UPDATE {self.table_name} SET {set_values} WHERE {where}'
         self.db.cursor.execute(query, tuple(kwargs.values()))
         self.db.conn.commit()
 

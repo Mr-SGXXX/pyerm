@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.1
+# Version: 0.3.2
 
 from PIL import Image
 from io import BytesIO
@@ -31,6 +31,7 @@ import traceback
 import sys
 
 from .dbbase import Table, Database
+from .utils import value2def
 
 class ExperimentTable(Table):
     def __init__(self, db: Database) -> None:
@@ -98,10 +99,15 @@ class DataTable(Table):
                 'remark': 'TEXT DEFAULT NULL UNIQUE',
             }
         super().__init__(db, table_name, columns)
-        if len(param_def_dict) != 0: 
-            self.db.cursor.execute(f"CREATE UNIQUE INDEX IF NOT EXISTS index_{self.table_name} ON {self.table_name}({', '.join(param_def_dict.keys())})")
+        # if len(param_def_dict) != 0: 
+        #     self.db.cursor.execute(f"CREATE INDEX IF NOT EXISTS index_{self.table_name} ON {self.table_name}({', '.join(param_def_dict.keys())})")
     
     def insert(self, **kwargs):
+        for key in kwargs.keys():
+            if key not in self.columns:
+                def_str = value2def(kwargs[key])
+                self.add_column(key, def_str)
+                self.update(**{key: 'NULL'})
         condition = ' AND '.join([f'{k.replace(" ", "_")}=?' for k in kwargs.keys()])
         values = list(kwargs.values())
 
@@ -128,10 +134,14 @@ class MethodTable(Table):
                 'remark': 'TEXT DEFAULT NULL UNIQUE',
             }
         super().__init__(db, table_name, columns)
-        if len(param_def_dict) != 0: 
-            self.db.cursor.execute(f"CREATE UNIQUE INDEX IF NOT EXISTS index_{self.table_name} ON {self.table_name}({', '.join(param_def_dict.keys())})")
+        # if len(param_def_dict) != 0: 
+        #     self.db.cursor.execute(f"CREATE INDEX IF NOT EXISTS index_{self.table_name} ON {self.table_name}({', '.join(param_def_dict.keys())})")
     
     def insert(self, **kwargs):
+        for key in kwargs.keys():
+            if key not in self.columns:
+                self.add_column(key, value2def(kwargs[key]))
+                self.update(**{key: 'NULL'})
         condition = ' AND '.join([f'{k.replace(" ", "_")}=?' for k in kwargs.keys()])
         values = list(kwargs.values())
 
@@ -169,6 +179,9 @@ class ResultTable(Table):
                 self.max_image_index = max(self.max_image_index, int(match.group(1)))
 
     def record_rst(self, experiment_id:int, **rst_dict:dict):
+        for key in rst_dict.keys():
+            if key not in self.columns:
+                self.add_column(key, value2def(rst_dict[key]))
         self.insert(experiment_id=experiment_id, **rst_dict)
 
     def record_image(self, experiment_id:int, **image_dict:typing.Dict[str, typing.Union[Image.Image, str, bytearray, bytes]]):        

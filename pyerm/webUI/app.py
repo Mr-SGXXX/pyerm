@@ -20,13 +20,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.1
+# Version: 0.3.2
 
 import streamlit as st
 import os
 import configparser
 
 from home import home
+from record import record
 from tables import tables
 from details import details
 from analysis import analysis
@@ -69,13 +70,17 @@ def init():
     if 'cur_detail_img_id' not in st.session_state:
         st.session_state.cur_detail_img_id = None
     if 'recorded_analysis_setting' not in st.session_state:
-        st.session_state.recorded_analysis_setting = set()
+        st.session_state.recorded_analysis_setting = []
     if 'selected_settings' not in st.session_state:
         st.session_state.selected_settings = []
     if 'error_flag' not in st.session_state:
         st.session_state.error_flag = False
     if 'cur_analysis_task' not in st.session_state:
         st.session_state.cur_analysis_task = None
+    if 'single_table_part_max_records' not in st.session_state:
+        st.session_state.single_table_part_max_records = int(config.get('DEFAULT', 'single_table_part_max_records', fallback=100))
+    else:
+        config.set('DEFAULT', 'single_table_part_max_records', str(st.session_state.single_table_part_max_records))
     with open(os.path.join(PYERM_HOME, 'config.ini'), 'w') as f:
         config.write(f)
 
@@ -84,15 +89,18 @@ def main():
     st.sidebar.title("PyERM WebUI")
     st.sidebar.markdown("## Please select a page")
     init()
-    page = st.sidebar.radio("Page to select:", ["Home", "Details", "Analysis", "Tables"], index=0)
+    page = st.sidebar.radio("Page to select:", ["Home", "Recording", "Details", "Analysis", "Tables"], index=0)
     if page == "Home":
         home()
+    # elif page == "Recording":
+    #     record()
     elif page == "Details":
         details()
     elif page == "Analysis":
         analysis()
     elif page == "Tables":
         tables()
+        
     
 
 if __name__ == "__main__":

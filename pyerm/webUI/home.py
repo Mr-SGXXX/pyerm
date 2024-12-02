@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.1
+# Version: 0.3.2
 
 import streamlit as st
 import os
@@ -30,6 +30,7 @@ import math
 import subprocess
 from importlib.metadata import version
 
+from pyerm.database.utils import delete_failed_experiments
 from pyerm.database.dbbase import Database
 from pyerm.database.tables import ResultTable
 from pyerm.webUI import PYERM_HOME
@@ -39,18 +40,33 @@ REPO_URL = "https://github.com/Mr-SGXXX/pyerm"
 def home():
     title()
     st.write("---")
-    load_db()
+    cols = st.columns(2)
+    with cols[0]:
+        load_db()
     if os.path.exists(st.session_state.db_path) and st.session_state.db_path.endswith('.db'):
-        st.markdown('### Delete Useless Figures in Database')
-        delete_useless_figures()
-        st.markdown('### Export Experiment Data')
-        if st.checkbox('Download Excel & Result Images as ZIP', value=False):
-            st.write('_This will export all the experiment data in the database as Excel files and images, and pack them into a ZIP file._')
-            st.write('_**Notice**: Please be patient, this may take a while._')
-            download_zip()
-        if st.checkbox('Download raw db file', value=False):
-            st.write('_This will download the raw database file._')
-            download_db()
+        with cols[1]:
+            st.markdown('### Delete Useless Data in Database')
+            st.write("You can delete useless data in the database to save space, including:")
+            delete_useless_figures()
+            if st.checkbox('Delete all failed and stuck records', value=False):
+                st.write('**Warning: This operation will delete all failed records and their results, which cannot be undone.**')
+                st.write("_**Notice**: Experiments that have been running for more than 24 hours will also be seen as stucked and deleted._")
+                if st.button(f"Confirm", key="delete_failed"):
+                    db = Database(st.session_state.db_path, output_info=False)
+                    delete_failed_experiments(db)
+                    st.session_state.cur_detail_id = None
+                    st.rerun()
+            st.write("---")
+            st.markdown('### Export Experiment Data')
+            st.write('You can export the experiment data by using the following options:')
+            if st.checkbox('Download Excel & Result Images as ZIP', value=False):
+                st.write('_This will export all the experiment data in the database as Excel files and images, and pack them into a ZIP file._')
+                st.write('_The analysis results and figures are not included._')
+                st.write('_**Notice**: Please be patient, this process may take a long time when the database is large._')
+                download_zip()
+            if st.checkbox('Download raw db file', value=False):
+                st.write('_This will download the raw database file._')
+                download_db()
     st.write("---")
     clean_cache()
     if st.sidebar.button('Refresh', key='refresh'):
@@ -71,7 +87,7 @@ def title():
 
 def load_db():
     st.markdown('## Load Database')
-    st.markdown("### **(PyERM only supports SQLite database for now)**")
+    st.markdown("**Notice:** _PyERM is based on SQLite database_")
     db_path = st.selectbox("Select Recorded Database File", st.session_state.db_path_list, index=st.session_state.db_path_list.index(st.session_state.db_path) if st.session_state.db_path in st.session_state.db_path_list else 0)
     if db_path is None:
         db_path = st.session_state.db_path
@@ -132,7 +148,7 @@ def download_db():
 def delete_useless_figures():
     if st.checkbox('Delete Useless Figures', value=False):
         st.write('**Notice:**_This will delete all the figures of those experiment without remark name in the database to save space._')
-        if st.button('Confirm'):
+        if st.button('Confirm', key="delete_useless_figures"):
             db = Database(st.session_state.db_path, output_info=False)
             experiment_table = db['experiment_list']
             useless_figures_ids = experiment_table.select('id', 'task', where="remark is NULL")
@@ -166,7 +182,7 @@ def clean_cache():
         build_tree_string(PYERM_HOME)
     if st.checkbox('I want to clean cache', value=False):
         st.write('_**Notice**: This will delete the cache folder and all its contents, which cannot be undone._')
-        if st.button('Confirm'):
+        if st.button('Confirm', key='clean_cache'):
             st.session_state.db_path_list = []
             shutil.rmtree(PYERM_HOME)
             st.write('Cache cleaned successfully.')

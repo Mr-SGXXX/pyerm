@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.1
+# Version: 0.3.2
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -50,7 +50,8 @@ def details():
         else:
             st.sidebar.markdown('## Choose Experiment')
             cur_id_last = cur_id
-            cur_remark_name = experiment_table.select(where=f'id={cur_id}')[0][-2]
+            cur_remark_name = experiment_table.select("remark", where=f'id={cur_id}')
+            cur_remark_name = cur_remark_name[0][0] if cur_remark_name else None
             cur_id = st.sidebar.text_input('Experiment ID or remark name', key='input_exp_id', value=cur_id if cur_remark_name is None else cur_remark_name)
             if cur_id.isdigit():
                 cur_id = int(cur_id)

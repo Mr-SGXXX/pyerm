@@ -20,16 +20,42 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.1
+# Version: 0.3.2
 
 from time import time
 import pandas as pd
 import numpy as np
 import re
-import datetime
+from datetime import datetime
+import typing
 
 from .dbbase import Database
 from .dbbase import View
+
+def auto_detect_def(param_dict:typing.Dict[str, typing.Any]) -> typing.Dict[str, str]:
+    param_def_dict = {}
+    for k, v in param_dict.items():
+        param_def_dict[k] = value2def(v)
+        if param_def_dict[k] == 'TEXT':
+            try:
+                param_dict[k] = str(v)
+            except:
+                raise TypeError(f'Unsupported type for DB: {type(v)}, consider to convert it to str or bytes.')
+    return param_def_dict
+
+def value2def(v):
+    if isinstance(v, int):
+        return 'INTEGER'
+    elif isinstance(v, float):
+        return 'REAL'
+    elif isinstance(v, str):
+        return 'TEXT'
+    elif isinstance(v, bool):
+        return f'INTEGER CHECK({k} IN (0, 1))'
+    elif isinstance(v, bytes) or isinstance(v, bytearray):
+        return 'BLOB'
+    else:
+        return 'TEXT'
 
 def delete_failed_experiments(db:Database):
     experiment_table = db['experiment_list']
@@ -50,17 +76,22 @@ def delete_failed_experiments(db:Database):
             task_table = db[f"result_{task}"]
             task_table.delete(f"experiment_id={experiment_id}")
             experiment_table.delete(f"id={experiment_id}")
-    
 
 def get_result_statistics(db, task, method, method_id, data, data_id):
-    result_table = db[f'result_{task}']
-    score_columns = [col for col in result_table.columns if not col.startswith("image_") and not col=="experiment_id"]
-    
     same_setting_id_sql = f"SELECT id FROM experiment_list WHERE method='{method}' AND method_id={method_id} AND data='{data}' AND data_id={data_id} AND task='{task}' AND status='finished'"
     same_setting_id = db.conn.execute(same_setting_id_sql).fetchall()
+    # print(same_setting_id)
     if len(same_setting_id) == 0:
         return None, []
     same_setting_id = [str(i[0]) for i in same_setting_id]
+    return get_result_statistics_by_ids(db, task, same_setting_id), same_setting_id
+    
+def get_result_statistics_by_ids(db, task, same_setting_id):
+    result_table = db[f'result_{task}']
+    score_columns = [col for col in result_table.columns if not col.startswith("image_") and not col=="experiment_id"]
+    same_setting_id_sql = ','.join(same_setting_id)
+    # print(same_setting_id_sql)
+    
     max_score_sql = f"SELECT {','.join([f'MAX({col}) AS {col}' for col in score_columns])} FROM result_{task} WHERE experiment_id IN ({same_setting_id_sql})"
     max_score = pd.read_sql_query(max_score_sql, db.conn)
     min_score_sql = f"SELECT {','.join([f'MIN({col}) AS {col}' for col in score_columns])} FROM result_{task} WHERE experiment_id IN ({same_setting_id_sql})"
@@ -97,7 +128,7 @@ def get_result_statistics(db, task, method, method_id, data, data_id):
     median_score = pd.read_sql_query(median_score_sql, db.conn)
     rst = pd.concat([max_score, min_score, avg_score, std_score, median_score], axis=0)
     rst.index = ['Max', 'Min', 'Avg', 'Std', 'Median']
-    return rst, same_setting_id
+    return rst
     
     
     

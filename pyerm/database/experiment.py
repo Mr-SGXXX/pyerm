@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.1
+# Version: 0.3.2
 
 import os
 import typing
@@ -31,6 +31,7 @@ from copy import deepcopy
 
 from .dbbase import Database
 from .tables import ExperimentTable, MethodTable, ResultTable, DetailTable, DataTable
+from .utils import auto_detect_def
 
 PYERM_HOME = os.path.join(os.path.expanduser('~'), 'pyerm')
 __all__ = ['Experiment']
@@ -306,25 +307,6 @@ class Experiment:
             self.rst_table = ResultTable(self._db, task_name, rst_def_dict)
 
 
-def auto_detect_def(param_dict:typing.Dict[str, typing.Any]) -> typing.Dict[str, str]:
-    param_def_dict = {}
-    for k, v in param_dict.items():
-        if isinstance(v, int):
-            param_def_dict[k] = 'INTEGER'
-        elif isinstance(v, float):
-            param_def_dict[k] = 'REAL'
-        elif isinstance(v, str):
-            param_def_dict[k] = 'TEXT'
-        elif isinstance(v, bool):
-            param_def_dict[k] = f'INTEGER CHECK({k} IN (0, 1))'
-        elif isinstance(v, bytes) or isinstance(v, bytearray):
-            param_def_dict[k] = 'BLOB'
-        else:
-            try:
-                param_dict[k] = str(param_dict[k])
-                param_def_dict[k] = 'TEXT'
-            except:
-                raise TypeError(f'Unsupported type for DB: {type(v)}, consider to convert it to str or bytes.')
-    return param_def_dict
+
 
 
