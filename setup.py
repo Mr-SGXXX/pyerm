@@ -55,6 +55,7 @@ setup(
         "xlsxwriter",
         "numpy",
         "matplotlib",
+        "seaborn",
         "streamlit>=1.39.0"
     ],
     python_requires='>=3.9',

@@ -92,8 +92,8 @@ def main():
     page = st.sidebar.radio("Page to select:", ["Home", "Recording", "Details", "Analysis", "Tables"], index=0)
     if page == "Home":
         home()
-    # elif page == "Recording":
-    #     record()
+    elif page == "Recording":
+        record()
     elif page == "Details":
         details()
     elif page == "Analysis":

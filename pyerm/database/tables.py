@@ -37,6 +37,7 @@ class ExperimentTable(Table):
     def __init__(self, db: Database) -> None:
         columns = {
             'id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+            'remark': 'TEXT DEFAULT NULL UNIQUE',
             'description': 'TEXT DEFAULT NULL',
             'method': 'TEXT NOT NULL',
             'method_id': 'INTEGER NOT NULL', 
@@ -50,7 +51,6 @@ class ExperimentTable(Table):
             'useful_time_cost': 'REAL DEFAULT NULL',
             'total_time_cost': 'REAL AS (strftime(\"%s\", end_time) - strftime(\"%s\", start_time)) VIRTUAL',
             'status': 'TEXT CHECK(status IN (\"running\", \"finished\", \"failed\"))',
-            'remark': 'TEXT DEFAULT NULL UNIQUE',
             'failed_reason': 'TEXT DEFAULT NULL',
         }
         super().__init__(db, "experiment_list", columns)
@@ -95,8 +95,8 @@ class DataTable(Table):
             assert param_def_dict is not None, 'Data Parameter Dict must be provided when creating a new data table'
             columns = {
                 'data_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
-                **param_def_dict,
                 'remark': 'TEXT DEFAULT NULL UNIQUE',
+                **param_def_dict,
             }
         super().__init__(db, table_name, columns)
         # if len(param_def_dict) != 0: 
@@ -130,8 +130,8 @@ class MethodTable(Table):
             assert param_def_dict is not None, 'Method Parameter Dict must be provided when creating a new parameter table'
             columns = {
                 'method_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
-                **param_def_dict,
                 'remark': 'TEXT DEFAULT NULL UNIQUE',
+                **param_def_dict,
             }
         super().__init__(db, table_name, columns)
         # if len(param_def_dict) != 0: 

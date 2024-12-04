@@ -43,7 +43,7 @@ Export the content of a SQLite database to an Excel file and the result images (
 export_zip db_path(default ~/experiment.db) output_dir(default ./)
 ```
 ### db_merge 
-Merge two SQLite databases. The two database must have the same structure for current version.
+Merge the second db to the first db SQLite databases. The two database must have the same structure for current version.
 ```shell
 db_merge db_path_destination db_path_source
 ```
@@ -87,9 +87,9 @@ The only necessary column for detail table is the detail id (which can be set au
 # Future Plan
 
 - [x] Web UI Visualization 
+- [x] Commonly Used Analyze Tools
 - [ ] Experiment Summary Report Generate
-- [ ] Commonly Used Analyze Fuctions
-- [ ] Bug fix & performence improving
+- [ ] Bug fix & performance improving
 
 # Contact
 My email is yx_shao@qq.com. If you have any question or advice, please contact me. 

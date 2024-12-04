@@ -70,7 +70,8 @@ def single_setting_analysis(db, task, method, method_id, dataset, dataset_id):
         st.dataframe(result_statistics, use_container_width=True)
         st.write(f"_**Notice**: The statistics are calculated based on the **{num_records}** same setting experiments._")
     else:
-        st.write('No statistics results found for this setting.')
+        st.write('No results found for this setting.')
+        return
     remarked_list = db[f'experiment_list'].select('remark', where=f'id in ({",".join(same_setting_ids)}) AND remark IS NOT NULL')
     remarked_list = [remark[0] for remark in remarked_list]
     # remarked_list = []
@@ -487,7 +488,7 @@ def boxplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **addi
         additional_params_dict['palette'] = 'Set2'
     if 'linewidth' not in additional_params_dict:
         additional_params_dict['linewidth'] = 2.5
-    sns.boxplot(data=df, x=x, y=y, ax=ax, **additional_params_dict)
+    sns.boxplot(data=df, hue=x, x=x, y=y, ax=ax, **additional_params_dict)
     if title != '':
         ax.set_title(title, fontsize=16)
     ax.set_xlabel(x, fontsize=14)
@@ -504,7 +505,7 @@ def violinplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **a
         additional_params_dict['palette'] = 'Set2'
     if 'linewidth' not in additional_params_dict:
         additional_params_dict['linewidth'] = 2.5
-    sns.violinplot(data=df, x=x, y=y, ax=ax, **additional_params_dict)
+    sns.violinplot(data=df, hue=x, x=x, y=y, ax=ax, **additional_params_dict)
     if title != '':
         ax.set_title(title, fontsize=16)
     ax.set_xlabel(x, fontsize=14)
@@ -538,7 +539,7 @@ def barplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **addi
         additional_params_dict['palette'] = 'Set2'
     if 'linewidth' not in additional_params_dict:
         additional_params_dict['linewidth'] = 2.5
-    sns.barplot(data=df, x=x, y=y, ax=ax, **additional_params_dict)
+    sns.barplot(data=df, hue=x, x=x, y=y, ax=ax, **additional_params_dict)
     if title != '':
         ax.set_title(title, fontsize=16)
     ax.set_xlabel(x, fontsize=14)

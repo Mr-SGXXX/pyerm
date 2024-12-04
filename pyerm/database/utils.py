@@ -51,7 +51,7 @@ def value2def(v):
     elif isinstance(v, str):
         return 'TEXT'
     elif isinstance(v, bool):
-        return f'INTEGER CHECK({k} IN (0, 1))'
+        return f'INTEGER CHECK({v} IN (0, 1))'
     elif isinstance(v, bytes) or isinstance(v, bytearray):
         return 'BLOB'
     else:
