@@ -38,15 +38,15 @@ from pyerm.database.experiment import Experiment
 def record():
     title()
     if os.path.exists(st.session_state.db_path) and st.session_state.db_path.endswith('.db'):
-        st.write('## Manually Record the Experiment Data')
+        st.write(st.session_state.lm["record.manually_record_title"])
             
-    if st.sidebar.button('Refresh', key='refresh'):
+    if st.sidebar.button(st.session_state.lm["app.refresh"], key='refresh'):
         st.rerun()
         
 
 def title():
-    st.title('Recording Manually')
+    st.title(st.session_state.lm["record.title"])
     if os.path.exists(st.session_state.db_path) and st.session_state.db_path.endswith('.db'):
-        st.write(f'Database Loaded (In {st.session_state.db_path})')
+        st.write(st.session_state.lm["app.dataset_load_success_text"].format(DB_PATH=st.session_state.db_path))
     else:
-        st.write('No database loaded, please load a database first.')
+        st.write(st.session_state.lm["app.dataset_load_failed_text"])

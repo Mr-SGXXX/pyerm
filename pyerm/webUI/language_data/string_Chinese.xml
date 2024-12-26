@@ -1,0 +1,216 @@
+<translations>
+    <app>
+        <sidebar_page_select>## 请选择页面</sidebar_page_select>
+        <sidebar_page_select_radio>可选页面:</sidebar_page_select_radio>
+        <sidebar_page_select_radio_1>主页</sidebar_page_select_radio_1>
+        <sidebar_page_select_radio_2>手动记录</sidebar_page_select_radio_2>
+        <sidebar_page_select_radio_3>实验详情</sidebar_page_select_radio_3>
+        <sidebar_page_select_radio_4>统计分析</sidebar_page_select_radio_4>
+        <sidebar_page_select_radio_5>数据库表</sidebar_page_select_radio_5>
+        <dataset_load_success_text>成功加载数据库(于{DB_PATH})</dataset_load_success_text>
+        <dataset_load_failed_text>未加载数据库，请先加载数据库</dataset_load_failed_text>
+        <refresh>刷新</refresh>
+    </app>
+    
+    <home>
+        <title>
+            <title>Python实验记录管理器(PyERM)网页交互界面</title>
+            <version>**版本**: {version}</version>
+            <repo>**GitHub仓库**: [{REPO_URL}]({REPO_URL})</repo>
+            <pypi>**PyPI**: [PyERM](https://pypi.org/project/pyerm/)</pypi>
+            <license>**许可证**: [MIT](https://opensource.org/licenses/MIT)</license>
+            <author>**作者**: 邵雨轩</author>
+            <description>**描述**:</description>
+            <description1>PyERM是一个用于管理和可视化实验记录的 Python 包。</description1>
+            <description2>这是PyERM的网页用户界面。</description2>
+            <disclaimer>**免责声明**：此版本已经过全面测试且能稳定运行，但可能仍存在漏洞。</disclaimer>
+        </title>
+
+        <change_language>
+            <title>## 语言设置</title>
+            <title_notice>你可以在这里修改WebUI的语言</title_notice>
+            <language_select>选择语言</language_select>
+            <change_language_button>变更语言</change_language_button>
+        </change_language>
+
+        <load_db>
+            <title>## 加载数据库</title>
+            <title_notice>**注意:** _PyERM基于SQLite数据库_</title_notice>
+            <database_select>选择实验记录数据库文件</database_select>
+            <new_remote_database_checkbox>设置新数据库文件路径</new_remote_database_checkbox>    
+            <new_remote_database_input>新数据库文件绝对路径</new_remote_database_input>
+            <upload_database_checkbox>从本地上传数据库文件</upload_database_checkbox>
+            <upload_database_notice1>_这将上传一个数据库文件到网页服务器并保存在缓存文件夹中，用于在Web UI后续数据分析。_</upload_database_notice1>
+            <upload_database_notice2>_**注意**: 请确保数据库文件是SQLite格式。_</upload_database_notice2>
+            <change_database_button>变更数据库</change_database_button>
+            <current_path_text>当前数据库路径: **{DB_PATH}**</current_path_text>
+            <load_success_text1>成功找到数据库文件。</load_success_text1>
+            <load_success_text2>数据库文件大小: **{FORMAT_SIZE}**</load_success_text2>
+            <load_failed_text>未找到数据库文件，请输入正确路径。</load_failed_text>
+        </load_db>
+        
+        <delete_useless_figures>
+            <delete_figures_button>删除无用实验图表</delete_figures_button>
+            <delete_figures_notice>**注意:**_这将删除数据库中没有备注名称的实验中的所有图像以节省空间。_</delete_figures_notice>
+            <delete_figures_confirm_button>确认</delete_figures_confirm_button>
+            <delete_figures_success_text>无用图像已成功删除。</delete_figures_success_text>
+        </delete_useless_figures>
+
+        <clean_cache>
+            <title>## 清理缓存</title>
+            <title_notice>缓存用于存储临时文件，如配置文件。</title_notice>
+            <cache_location_text>缓存文件夹位于: **{PYERM_HOME}**</cache_location_text>
+            <cache_size_text>缓存文件夹大小: **{FOLDER_SIZE}**</cache_size_text>
+            <cache_file_tree_checkbox>显示缓存文件树</cache_file_tree_checkbox>
+            <clean_cache_checkbox>我想清理缓存</clean_cache_checkbox>
+            <clean_cache_notice1>_**注意**: 这将删除缓存文件夹及其所有内容，无法撤销。_</clean_cache_notice1>
+            <clean_cache_confirm_button>确认</clean_cache_confirm_button>
+            <clean_cache_success_text>缓存已成功清理。</clean_cache_success_text>
+        </clean_cache>
+
+        <download_zip_button>下载Excel文件和图表并打包为ZIP</download_zip_button>
+        <download_db_button>下载原始数据库文件</download_db_button>
+        <upload_db_text>上传数据库文件</upload_db_text>
+
+        <delete_useless_data_title>### 删除数据库中的无用数据</delete_useless_data_title>
+        <delete_useless_data_notice>您可以删除数据库中的无用数据以节省空间，包括:</delete_useless_data_notice>
+        <delete_failed_records_checkbox>删除所有失败和卡住的实验记录</delete_failed_records_checkbox>
+        <delete_failed_records_warning>**警告: 此操作将删除所有失败的记录及其结果，无法撤销。**</delete_failed_records_warning>
+        <delete_failed_records_notice>_**注意**: 运行超过24小时且仍未结束的实验将被视为卡住并删除。_</delete_failed_records_notice>
+        <delete_failed_records_confirm_button>确认</delete_failed_records_confirm_button>
+
+        <export_data_title>### 导出实验数据</export_data_title>
+        <export_data_notice>您可以使用以下选项导出实验数据:</export_data_notice>
+        <export_zip_checkbox>下载Excel文件和结果图表并打包为ZIP</export_zip_checkbox>
+        <export_zip_notice1>_这将导出数据库中的所有实验数据为Excel文件和图表，并打包成ZIP文件。_</export_zip_notice1>
+        <export_zip_notice2>_统计分析结果及其图像不包括在内。_</export_zip_notice2>
+        <export_zip_notice3>_**注意**: 请耐心等待，当数据库较大时，此过程可能需要很长时间。_</export_zip_notice3>
+        <export_db_checkbox>下载原始数据库文件</export_db_checkbox>
+        <export_db_notice>_这将下载原始SQLite db文件。_</export_db_notice>
+    </home>
+
+    <record>
+        <title>手动记录</title>
+        <manually_record_title>## 手动记录实验数据</manually_record_title>
+    </record>
+
+    <details>
+        <title>实验详情</title>
+
+        <basic_information>
+            <task>#### 任务: **{TASK}**</task>
+            <method>#### 方法: **{METHOD}**</method>
+            <data>#### 数据: **{DATA}**</data>
+            <desp_part1>任务**{TASK}**的实验**ID:{ID}**使用方法**{METHOD}**和数据**{DATA}**，</desp_part1>
+            <desp_part2>该任务由**{EXPERIMENTERS}**等人执行，</desp_part2>
+            <desp_part3>开始于 **{START_TIME}**。</desp_part3>
+            <desp_part4>结束于 **{END_TIME}**。</desp_part4>
+            <failed_text>**实验失败**，原因如下：</failed_text>
+            <finished_text1> **实验成功完成**，总耗时**{TOTAL_TIME_COST:.2f}s**</finished_text1>
+            <finished_text2>，其中有效耗时 **{USEFUL_TIME_COST:.2f}s**。</finished_text2>
+            <finished_text3>。</finished_text3>
+            <running_text>**实验仍在进行中**，当前耗时**{TIME_COST:.2f}s**。</running_text>
+            <desp>_实验描述_: **{DESCRIPTION}**</desp>
+            <experimenters>_实验人员_: **{EXPERIMENTERS}**</experimenters> 
+            <tags>_标签_: **{TAGS}**</tags>
+        </basic_information>
+        
+        <remark_cur_experiment>
+            <remark_cur_experiment_checkbox>备注当前实验</remark_cur_experiment_checkbox>
+            <remark_cur_experiment_input>设置或更改当前实验的备注名称。_为空表示删除备注名称。_</remark_cur_experiment_input>
+            <remark_cur_experiment_button>确认</remark_cur_experiment_button>
+            <remark_cur_experiment_failed_repeat>错误：备注名称已存在，请选择其他名称。</remark_cur_experiment_failed_repeat>
+            <remark_cur_experiment_failed_number>错误：备注名称不能为正数。</remark_cur_experiment_failed_number>
+        </remark_cur_experiment>
+
+        <no_experiment_found_text>未找到任何实验。请确保已运行某一实验。</no_experiment_found_text>
+        
+        <sidebar_choose_experiment_title>## 选择实验</sidebar_choose_experiment_title>
+        <sidebar_choose_experiment_input>实验ID或备注名</sidebar_choose_experiment_input>
+        <sidebar_only_show_remark_checkbox>仅显示已备注实验</sidebar_only_show_remark_checkbox>
+        <sidebar_last_experiment_button>前一实验</sidebar_last_experiment_button>
+        <sidebar_the_first_experiment_button>转到首个</sidebar_the_first_experiment_button>
+        <sidebar_next_experiment_button>后一实验</sidebar_next_experiment_button>
+        <sidebar_the_last_experiment_button>转到末尾</sidebar_the_last_experiment_button>
+
+        <experiment_information_title>## 实验信息</experiment_information_title>
+        <experiment_information_id>### 当前实验ID: {CUR_ID}</experiment_information_id>
+        <experiment_not_exist_text>ID为{CUR_ID}的实验不存在。请检查ID。</experiment_not_exist_text>
+        
+        <experiment_result_title>### 实验结果：</experiment_result_title>
+        <experiment_result_image_select>**选择实验结果图像**</experiment_result_image_select>
+        <experiment_result_image_download>下载 {SELECTED_IMG}</experiment_result_image_download>
+        <experiment_result_image_not_exist>实验ID为{CUR_ID}的实验中未检测到图像。</experiment_result_image_not_exist>
+        <experiment_result_scores_title>**实验指标：**</experiment_result_scores_title>
+        <experiment_result_scores_notice>_**注意**：统计数据基于**{NUM_SAME_SETTING_RECORDS}**个相同设置的实验计算。_</experiment_result_scores_notice>
+        <experiment_result_not_exists>未找到结果，请检查实验状态。</experiment_result_not_exists>
+
+        <experiment_method_param_title>### 方法参数设置：</experiment_method_param_title>
+        <experiment_method_param_not_exist>找不到当前方法的设置</experiment_method_param_not_exist>
+        <experiment_method_remark>_备注名_: **{METHOD_REMARK_NAME}**</experiment_method_remark>
+        <experiment_method_index>当前实验设置</experiment_method_index>
+        <experiment_method_no_param>当前方法未使用超参数设置。</experiment_method_no_param>
+        
+        <experiment_data_param_title>### 数据参数设置：</experiment_data_param_title>
+        <experiment_data_param_not_exist>找不到当前数据的设置</experiment_data_param_not_exist>
+        <experiment_data_remark>_备注名_: **{DATA_REMARK_NAME}**</experiment_data_remark>
+        <experiment_data_index>当前实验设置</experiment_data_index>
+        <experiment_data_no_param>当前数据未使用超参数设置。</experiment_data_no_param>
+        
+        <experiment_detail_title>## 实验详情表</experiment_detail_title>
+
+        <experiment_delete_title>## 删除当前实验</experiment_delete_title>
+        <experiment_delete_warn>**警告**：此操作将删除当前实验记录和结果，且无法撤销。</experiment_delete_warn>
+        <experiment_delete_checkbox>删除当前实验</experiment_delete_checkbox>
+        <experiment_delete_confirm_button>确认</experiment_delete_confirm_button>
+    </details>
+
+    <table>
+        <title>数据库的表</title>
+
+        <detect_tables>
+            <title>## 检测到的表</title>
+            <no_table_detected_text>数据库中未检测到任何表。</no_table_detected_text>
+            <table_select>**选择表**:</table_select>
+        </detect_tables>
+
+        <select_tables>
+            <title>## 当前表:</title>
+            <used_sql>### 使用的SQL: ({SQL})</used_sql>
+            <sql_error>### SQL语法错误:</sql_error>
+        </select_tables>
+
+        <show_table>
+            <sidebar_title>## 分页显示表</sidebar_title>
+            <sidebar_part_input>当前页:</sidebar_part_input>
+            <sidebar_set_max_checkbox>设置每页最大记录数</sidebar_set_max_checkbox>
+            <sidebar_set_max_input>每页最大记录数:</sidebar_set_max_input>
+            <sidebar_set_max_confirm_button>确认</sidebar_set_max_confirm_button>
+            <sidebar_show_cur_counts>_当前页面中共有{CUR_COUNTS}/{TOTAL_COUNTS}条记录。_</sidebar_show_cur_counts>
+        </show_table>
+
+        <input_sql>
+            <text>您可以在此处设置列和条件以构建当前表的选择SQL语句。</text>
+            <condition_input>条件</condition_input>
+            <condition_help>选择SQL语句的条件。</condition_help>
+            <columns_input>列</columns_input>
+            <columns_help>您希望在SQL语句中选择的列。</columns_help>
+            <table>表</table>
+            <run_button>运行</run_button>
+            <table_name>SQL查询结果</table_name>
+        </input_sql>
+
+        <input_full_sql>
+            <text>您可以在此处输入完整的SQL语句，以选择所需内容并链接不同的表或视图。</text>
+            <notice>_**注意**: 此处也允许使用Drop、Delete等操作，但请谨慎使用。_</notice>
+            <run_button>运行</run_button>
+            <table_name>SQL查询结果</table_name>
+        </input_full_sql>
+
+        <download_table_as_csv_button>下载为CSV</download_table_as_csv_button>
+        
+        <sidebar_sql_title>## SQL查询</sidebar_sql_title>
+        <sidebar_full_sql_checkbox>使用完整SQL语句操作整个数据库</sidebar_full_sql_checkbox>
+        <sidebar_sql_checkbox>按列、条件和表使用SQL</sidebar_sql_checkbox>
+    </table>
+</translations>

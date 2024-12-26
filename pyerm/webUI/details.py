@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.2
+# Version: 0.3.3
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -46,13 +46,13 @@ def details():
         else:
             cur_id = st.session_state.cur_detail_id
         if cur_id is None:
-            st.write('No experiment found. Please make sure any experiment has been run.')
+            st.write(st.session_state.lm["details.no_experiment_found_text"])
         else:
-            st.sidebar.markdown('## Choose Experiment')
+            st.sidebar.markdown(st.session_state.lm["details.sidebar_choose_experiment_title"])
             cur_id_last = cur_id
             cur_remark_name = experiment_table.select("remark", where=f'id={cur_id}')
             cur_remark_name = cur_remark_name[0][0] if cur_remark_name else None
-            cur_id = st.sidebar.text_input('Experiment ID or remark name', key='input_exp_id', value=cur_id if cur_remark_name is None else cur_remark_name)
+            cur_id = st.sidebar.text_input(st.session_state.lm["details.sidebar_choose_experiment_input"], key='input_exp_id', value=cur_id if cur_remark_name is None else cur_remark_name)
             if cur_id.isdigit():
                 cur_id = int(cur_id)
             else:
@@ -60,22 +60,22 @@ def details():
             st.session_state.cur_detail_id = cur_id
             if cur_id_last != cur_id:
                 st.session_state.cur_detail_img_id = 0
-            if st.sidebar.checkbox('Only Show Remarked Experiments', key='only_remark'):
+            if st.sidebar.checkbox(st.session_state.lm["details.sidebar_only_show_remark_checkbox"], key='only_remark'):
                 only_remark = True
             else:
                 only_remark = False
             cols_sidebar = st.sidebar.columns(2)
             cur_id_last = cur_id 
             with cols_sidebar[0]:
-                if st.button('Last\nExperiment', disabled=cur_id <= min_id):
+                if st.button(st.session_state.lm["details.sidebar_last_experiment_button"], disabled=cur_id <= min_id):
                     cur_id  = detect_experiment_id(db, False, only_remark=only_remark)
-                if st.button('Go to the First'):
+                if st.button(st.session_state.lm["details.sidebar_the_first_experiment_button"]):
                     st.session_state.cur_detail_id = min_id
                     st.rerun()
             with cols_sidebar[1]:
-                if st.button('Next\nExperiment', disabled=cur_id >= max_id):
+                if st.button(st.session_state.lm["details.sidebar_next_experiment_button"], disabled=cur_id >= max_id):
                     cur_id = detect_experiment_id(db, True, only_remark=only_remark)
-                if st.button('Go to the Last'):
+                if st.button(st.session_state.lm["details.sidebar_the_last_experiment_button"]):
                     st.session_state.cur_detail_id = max_id
                     st.rerun()
             if cur_id_last != cur_id:
@@ -83,15 +83,15 @@ def details():
             
 
         if experiment_table.select(where=f'id={cur_id}') == []:
-            st.markdown('## Experiment Information')
+            st.markdown(st.session_state.lm["details.experiment_information_title"])
             if cur_id == -1:
                 cur_id = 'Unknown'
-            st.markdown(f'### Current Experiment ID: {cur_id}')
-            st.write(f'Experiment with id:{cur_id} does not exist. Please check the ID.')
+            st.markdown(st.session_state.lm["details.experiment_information_id"].format(CUR_ID=cur_id))
+            st.write(st.session_state.lm["details.experiment_not_exist_text"].format(CUR_ID=cur_id))
         else:
-            st.markdown('## Experiment Information')
+            st.markdown(st.session_state.lm["details.experiment_information_title"])
             cur_remark_name = experiment_table.select(where=f'id={cur_id}')[0][-2]
-            st.markdown(f'### Current Experiment ID: {cur_id}' + (f"({cur_remark_name})" if cur_remark_name else ''))
+            st.markdown(st.session_state.lm["details.experiment_information_id"].format(CUR_ID=cur_id) + (f"({cur_remark_name})" if cur_remark_name else ''))
             
             basic_info, method_info, data_info, result_info = detect_experiment_info(db)
             basic_information(basic_info)
@@ -101,55 +101,61 @@ def details():
             st.write('---')
             cols = st.columns(2)
             with cols[0]:
-                st.write('### Experiment Result:')
+                st.write(st.session_state.lm["details.experiment_result_title"])
                 if result_info is not None:
                     result_info, image_dict = split_result_info(result_info)
                     result_info, num_same_setting_records = calculate_result_statistics(db, basic_info, result_info)
-                    selected_img = st.selectbox('**Select Experiment Result Image**', list(image_dict.keys()), key='select_img')
+                    selected_img = st.selectbox(st.session_state.lm["details.experiment_result_image_select"], list(image_dict.keys()), key='select_img')
                     if selected_img:
                         st.image(Image.open(io.BytesIO(image_dict[selected_img])))
                         with io.BytesIO(image_dict[selected_img]) as buf:
                             img_data = buf.read()
                         st.download_button(
-                            label=f"Download {selected_img}",
+                            label=st.session_state.lm["details.experiment_result_image_download"].format(SELECTED_IMG=selected_img),
                             data=img_data,
                             file_name=f"{selected_img}.png",
                             mime="image/png"
                         )
                     else:
-                        st.write(f'No image detected in experiment with id:{cur_id}.')
-                    st.write("**Result Scores:**")
+                        st.write(st.session_state.lm["details.experiment_result_image_not_exist"].format(CUR_ID=cur_id))
+                    st.write(st.session_state.lm["details.experiment_result_scores_title"])
                     st.write(result_info)
-                    st.write(f"_**Notice**: The statistics are calculated based on the **{num_same_setting_records}** same setting experiments._")
+                    st.write(st.session_state.lm["details.experiment_result_scores_notice"].format(NUM_SAME_SETTING_RECORDS=num_same_setting_records))
                 else:
-                    st.write('No result found. Please check the status of the experiment.')
+                    st.write(st.session_state.lm["details.experiment_result_not_exists"])
             with cols[1]:
-                st.write('### Method Paramater Setting:')
+                st.write(st.session_state.lm["details.experiment_method_param_title"])
                 if method_info is not None: 
-                    method_remark_name = method_info['remark'][0]
-                    if method_remark_name:
-                        st.write(f'_Remark Name_: **{method_remark_name}**')
-                    method_info.drop(columns=['remark'], inplace=True)
-                    method_info.index = [f'Current Experiment Setting']
-                    st.dataframe(method_info.astype(str).transpose(), use_container_width=True)
+                    if len(method_info) == 0:
+                        st.write(st.session_state.lm["details.experiment_method_param_not_exist"])
+                    else:
+                        method_remark_name = method_info['remark'][0]
+                        if method_remark_name:
+                            st.write(st.session_state.lm["details.experiment_method_remark"].format(METHOD_REMARK_NAME=method_remark_name))
+                        method_info.drop(columns=['remark'], inplace=True)
+                        method_info.index = [st.session_state.lm["details.experiment_method_index"]]
+                        st.dataframe(method_info.astype(str).transpose(), use_container_width=True)
                 else:
-                    st.write('No hyperparam setting used by current method.')
+                    st.write(st.session_state.lm["details.experiment_method_no_param"])
                     
                 st.write('---')
-                st.write('### Data Paramater Setting:')
+                st.write(st.session_state.lm["details.experiment_data_param_title"])
                 if data_info is not None:
-                    data_remark_name = data_info['remark'][0]
-                    if data_remark_name:
-                        st.write(f'_Remark Name_: **{data_remark_name}**')
-                    data_info.drop(columns=['remark'], inplace=True)
-                    data_info.index = [f'Current Experiment Setting']
-                    st.dataframe(data_info.astype(str).transpose(), use_container_width=True)
+                    if len(data_info) == 0:
+                        st.write(st.session_state.lm["details.experiment_data_param_not_exist"])
+                    else:
+                        data_remark_name = data_info['remark'][0]
+                        if data_remark_name:
+                            st.write(st.session_state.lm["details.experiment_data_remark"].format(DATA_REMARK_NAME=data_remark_name))
+                        data_info.drop(columns=['remark'], inplace=True)
+                        data_info.index = [st.session_state.lm["details.experiment_data_index"]]
+                        st.dataframe(data_info.astype(str).transpose(), use_container_width=True)
                 else:
-                    st.write('No hyperparam setting used by current dataset.')
+                    st.write(st.session_state.lm["details.experiment_data_no_param"])
             
             if f'detail_{cur_id}' in db.table_names:
                 st.write('---')
-                st.markdown('## Experiment Details Table')
+                st.markdown(st.session_state.lm["details.experiment_detail_title"])
                 detail_table = db[f'detail_{cur_id}']
                 detail_columns = detail_table.columns
                 detail_data = detail_table.select()
@@ -158,12 +164,12 @@ def details():
             
                 
             st.write('---')
-            st.markdown('## Delete Current Experiment')
-            st.markdown('**Warning**: This operation will delete current experiment record and result, which is irreversible.')
-            if st.checkbox('Delete Current Experiment', value=False):
-                if st.button('Confirm'):
+            st.markdown(st.session_state.lm["details.experiment_delete_title"])
+            st.markdown(st.session_state.lm["details.experiment_delete_warn"])
+            if st.checkbox(st.session_state.lm["details.experiment_delete_checkbox"], value=False):
+                if st.button(st.session_state.lm["details.experiment_delete_confirm_button"]):
                     delete_current_experiment(db)
-    if st.sidebar.button('Refresh', key='refresh'):
+    if st.sidebar.button(st.session_state.lm["app.refresh"], key='refresh'):
         st.rerun()
 
 def basic_information(basic_info:pd.DataFrame):
@@ -180,29 +186,34 @@ def basic_information(basic_info:pd.DataFrame):
     total_time_cost = basic_info['total_time_cost'][0]
     status = basic_info['status'][0]
     failed_reason = basic_info['failed_reason'][0]
-    st.write(f"#### Task: **{task}**") 
-    st.write(f"#### Method: **{method}**") 
-    st.write(f"#### Data: **{data}**") 
-    desp = f"Experiment **ID:{id}** of task **{task}** with method **{method}** and data **{data}**"
+    st.write(st.session_state.lm["details.basic_information.task"].format(TASK=task))
+    st.write(st.session_state.lm["details.basic_information.method"].format(METHOD=method)) 
+    st.write(st.session_state.lm["details.basic_information.data"].format(DATA=data)) 
+    desp = st.session_state.lm["details.basic_information.desp_part1"].format(ID=id, TASK=task, METHOD=method, DATA=data)
     if experimenters:
-        desp += f" conducted by **{experimenters}**"
-    desp += f" started at **{start_time}** and ended at **{end_time}**."
+        desp += st.session_state.lm["details.basic_information.desp_part2"].format(EXPERIMENTERS=experimenters)
+    if start_time:
+        desp += st.session_state.lm["details.basic_information.desp_part3"].format(START_TIME=start_time)
+    if end_time:
+        desp += st.session_state.lm["details.basic_information.desp_part4"].format(END_TIME=end_time)
     st.write(desp)
     if status == 'failed':
-        st.write(f"**It failed** due to the following reasons: ")
+        st.write(st.session_state.lm["details.basic_information.failed_text"])
         st.code(f"{failed_reason}")
     elif status == 'finished':
-        st.write(f"**It finished successfully** with **total time cost: {total_time_cost:.2f}s**" + f" and **useful time cost: {useful_time_cost:.2f}s**." if useful_time_cost else ".")
+        st.write(st.session_state.lm["details.basic_information.finished_text1"].format(TOTAL_TIME_COST=total_time_cost) + 
+                 st.session_state.lm["details.basic_information.finished_text2"].format(USEFUL_TIME_COST=useful_time_cost) if useful_time_cost else 
+                 st.session_state.lm["details.basic_information.finished_text3"])
     else:
         time_cost = time() - datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S").timestamp()
-        st.write(f"**It is still running**, current time cost is **{time_cost:.2f}s**.")
+        st.write(st.session_state.lm["details.basic_information.running_text"].format(TIME_COST=time_cost))
     st.write('')
     if description:
-        st.write(f"_Experimnt Description_: **{description}**")
+        st.write(st.session_state.lm["details.basic_information.desp"].format(DESCRIPTION=description))
     if experimenters:
-        st.write(f"_Experimenters_: **{experimenters}**")
+        st.write(st.session_state.lm["details.basic_information.experimenters"].format(EXPERIMENTERS=experimenters))
     if tags:
-        st.write(f"_Tags_: **{tags}**")
+        st.write(st.session_state.lm["details.basic_information.tags"].format(TAGS=tags))
 
 def calculate_result_statistics(db, basic_info: pd.DataFrame, result_info: pd.DataFrame):
     task = basic_info['task'][0]
@@ -219,7 +230,6 @@ def calculate_result_statistics(db, basic_info: pd.DataFrame, result_info: pd.Da
     
     return result_info, num_same_setting
     
-
 def detect_experiment_id(db, next_flag=True, only_remark=False):
     experiment_table = db['experiment_list']
     if st.session_state.cur_detail_id is None:
@@ -270,12 +280,12 @@ def detect_experiment_info(db):
 
 def remark_cur_experiment(db):
     experiment_table = db['experiment_list']
-    if st.checkbox('Remark Current Experiment', key='remark'):
-        remark = st.text_input("Set or change a remark name for current experiment. _Empty means delete remark name._", key='remark_input')
+    if st.checkbox(st.session_state.lm["details.remark_cur_experiment.remark_cur_experiment_checkbox"], key='remark'):
+        remark = st.text_input(st.session_state.lm["details.remark_cur_experiment.remark_cur_experiment_input"], key='remark_input')
 
-        if st.button('Confirm', key='confirm_remark'):
+        if st.button(st.session_state.lm["details.remark_cur_experiment.remark_cur_experiment_button"], key='confirm_remark'):
             if remark.isnumeric():
-                st.write('Error: Remark name cannot be a positive number.')
+                st.session_state.error_flag1 = True
             else:
                 if remark == '':
                     remark = None
@@ -288,8 +298,12 @@ def remark_cur_experiment(db):
             st.rerun()
         
         if st.session_state.error_flag:
-            st.write('Error: Remark name already exists, please choose another one.')
+            st.write(st.session_state.lm["details.remark_cur_experiment.remark_cur_experiment_failed_repeat"])
             st.session_state.error_flag = False
+        
+        if st.session_state.error_flag1:
+            st.write(st.session_state.lm["details.remark_cur_experiment.remark_cur_experiment_failed_number"])
+            st.session_state.error_flag1 = False
 
 def delete_current_experiment(db):
     experiment_table = db['experiment_list']
@@ -302,9 +316,9 @@ def delete_current_experiment(db):
     st.rerun()
 
 def title():
-    st.title(f'Experiment Details')
+    st.title(st.session_state.lm["details.title"])
     if os.path.exists(st.session_state.db_path) and st.session_state.db_path.endswith('.db'):
-        st.write(f'Database Loaded (In {st.session_state.db_path})')
+        st.write(st.session_state.lm["app.dataset_load_success_text"].format(DB_PATH=st.session_state.db_path))
     else:
-        st.write('No database loaded, please load a database first.')
+        st.write(st.session_state.lm["app.dataset_load_failed_text"])
     

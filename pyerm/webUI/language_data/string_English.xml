@@ -1,0 +1,296 @@
+<translations>
+    <app>
+        <sidebar_page_select>## Please select a page</sidebar_page_select>
+        <sidebar_page_select_radio>Page to select:</sidebar_page_select_radio>
+        <sidebar_page_select_radio_1>Home</sidebar_page_select_radio_1>
+        <sidebar_page_select_radio_2>Recording</sidebar_page_select_radio_2>
+        <sidebar_page_select_radio_3>Details</sidebar_page_select_radio_3>
+        <sidebar_page_select_radio_4>Analysis</sidebar_page_select_radio_4>
+        <sidebar_page_select_radio_5>Tables</sidebar_page_select_radio_5>
+        <dataset_load_success_text>Database Loaded (In {DB_PATH})</dataset_load_success_text>
+        <dataset_load_failed_text>No database loaded, please load a database first.</dataset_load_failed_text>
+        <refresh>Refresh</refresh>
+    </app>
+    
+    <home>
+        <title>
+            <title>Python Experiment Record Manager WebUI</title>
+            <version>**Version**: {version}</version>
+            <repo>**GitHub Repository**: [{REPO_URL}]({REPO_URL})</repo>
+            <pypi>**PyPI**: [PyERM](https://pypi.org/project/pyerm/)</pypi>
+            <license>**License**: [MIT](https://opensource.org/licenses/MIT)</license>
+            <author>**Author**: Yuxuan Shao</author>
+            <description>**Description**:</description>
+            <description1>PyERM is a Python package for managing and visualizing experiment records.</description1>
+            <description2>This is the web user interface of the PyERM.</description2>
+            <disclaimer>**Disclaimer**: This version has been fully tested and is stable, though bugs may exist.</disclaimer>
+        </title>
+
+        <change_language>
+            <title>## Change Language</title>
+            <title_notice>You can change the language of the WebUI here.</title_notice>
+            <language_select>Select Language</language_select>
+            <change_language_button>Change Language</change_language_button>
+        </change_language>
+
+        <load_db>
+            <title>## Load Database</title>
+            <title_notice>**Notice:** _PyERM is based on SQLite database_</title_notice>
+            <database_select>Select Recorded Database File</database_select>
+            <new_remote_database_checkbox>Add a new database file by path</new_remote_database_checkbox>    
+            <new_remote_database_input>New Database Absolute Path</new_remote_database_input>
+            <upload_database_checkbox>Upload Database File from Local</upload_database_checkbox>
+            <upload_database_notice1>_This will upload a database file to the server and save it in the cache folder, which will be used in this Web UI._</upload_database_notice1>
+            <upload_database_notice2>_**Notice**: Please make sure the database file is in SQLite format._</upload_database_notice2>
+            <change_database_button>Change Database</change_database_button>
+            <current_path_text>Current database path: **{DB_PATH}**</current_path_text>
+            <load_success_text1>Database found succesfully.</load_success_text1>
+            <load_success_text2>Dataset size: **{FORMAT_SIZE}**</load_success_text2>
+            <load_failed_text>Database not found. Please input the correct path.</load_failed_text>
+        </load_db>
+        
+        <delete_useless_figures>
+            <delete_figures_button>Delete Useless Figures</delete_figures_button>
+            <delete_figures_notice>**Notice:**_This will delete all the figures of those experiment without remark name in the database to save space._</delete_figures_notice>
+            <delete_figures_confirm_button>Confirm</delete_figures_confirm_button>
+            <delete_figures_success_text>Useless figures deleted successfully.</delete_figures_success_text>
+        </delete_useless_figures>
+
+        <clean_cache>
+            <title>## Clean Cache</title>
+            <title_notice>Cache is used to store temporary files, such as configure files.</title_notice>
+            <cache_location_text>Cache folder is located at: **{PYERM_HOME}**</cache_location_text>
+            <cache_size_text>Cache folder size: **{FOLDER_SIZE}**</cache_size_text>
+            <cache_file_tree_checkbox>Show Cache File Tree</cache_file_tree_checkbox>
+            <clean_cache_checkbox>I want to clean cache</clean_cache_checkbox>
+            <clean_cache_notice1>_**Notice**: This will delete the cache folder and all its contents, which cannot be undone._</clean_cache_notice1>
+            <clean_cache_confirm_button>Confirm</clean_cache_confirm_button>
+            <clean_cache_success_text>Cache cleaned successfully.</clean_cache_success_text>
+        </clean_cache>
+
+        <download_zip_button>Download Excel&amp;Images as ZIP</download_zip_button>
+        <download_db_button>Download raw db file</download_db_button>
+        <upload_db_text>Upload Database File</upload_db_text>
+
+        <delete_useless_data_title>### Delete Useless Data in Database</delete_useless_data_title>
+        <delete_useless_data_notice>You can delete useless data in the database to save space, including:</delete_useless_data_notice>
+        <delete_failed_records_checkbox>Delete all failed and stuck records</delete_failed_records_checkbox>
+        <delete_failed_records_warning>**Warning: This operation will delete all failed records and their results, which cannot be undone.**</delete_failed_records_warning>
+        <delete_failed_records_notice>_**Notice**: Experiments that have been running for more than 24 hours and is still running will also be seen as stucked and deleted._</delete_failed_records_notice>
+        <delete_failed_records_confirm_button>Confirm</delete_failed_records_confirm_button>
+
+        <export_data_title>### Export Experiment Data</export_data_title>
+        <export_data_notice>You can export the experiment data by using the following options:</export_data_notice>
+        <export_zip_checkbox>Download Excel &amp; Result Images as ZIP</export_zip_checkbox>
+        <export_zip_notice1>_This will export all the experiment data in the database as Excel files and images, and pack them into a ZIP file._</export_zip_notice1>
+        <export_zip_notice2>_The analysis results and figures are not included._</export_zip_notice2>
+        <export_zip_notice3>_**Notice**: Please be patient, this process may take a long time when the database is large._</export_zip_notice3>
+        <export_db_checkbox>Download raw db file</export_db_checkbox>
+        <export_db_notice>_This will download the raw SQLite database file._</export_db_notice>
+    </home>
+
+    <record>
+        <title>Recording Manually</title>
+        <manually_record_title>## Manually Record the Experiment Data</manually_record_title>
+    </record>
+
+    <details>
+        <title>Experiment Details</title>
+
+        <basic_information>
+            <task>#### Task: **{TASK}**</task>
+            <method>#### Method: **{METHOD}**</method>
+            <data>#### Data: **{DATA}**</data>
+            <desp_part1>Experiment **ID:{ID}** of task **{TASK}** with method **{METHOD}** and data **{DATA}**</desp_part1>
+            <desp_part2> conducted by **{EXPERIMENTERS}**</desp_part2>
+            <desp_part3> started at **{START_TIME}**</desp_part3>
+            <desp_part4> and ended at **{END_TIME}**.</desp_part4>
+            <failed_text>**It failed** due to the following reasons: </failed_text>
+            <finished_text1> **It finished successfully** with **total time cost: {TOTAL_TIME_COST:.2f}s**"</finished_text1>
+            <finished_text2> and **useful time cost: {USEFUL_TIME_COST:.2f}s**.</finished_text2>
+            <finished_text3>.</finished_text3>
+            <running_text>**It is still running**, current time cost is **{TIME_COST:.2f}s**.</running_text>
+            <desp>_Experimnt Description_: **{DESCRIPTION}**</desp>
+            <experimenters>_Experimenters_: **{EXPERIMENTERS}**</experimenters> 
+            <tags>_Tags_: **{TAGS}**</tags>
+        </basic_information>
+        
+        <remark_cur_experiment>
+            <remark_cur_experiment_checkbox>Remark Current Experiment</remark_cur_experiment_checkbox>
+            <remark_cur_experiment_input>Set or change a remark name for current experiment. _Empty means delete remark name._</remark_cur_experiment_input>
+            <remark_cur_experiment_button>Confirm</remark_cur_experiment_button>
+            <remark_cur_experiment_failed_repeat>Error: Remark name already exists, please choose another one.</remark_cur_experiment_failed_repeat>
+            <remark_cur_experiment_failed_number>Error: Remark name cannot be a positive number.</remark_cur_experiment_failed_number>
+        </remark_cur_experiment>
+
+        <no_experiment_found_text>No experiment found. Please make sure any experiment has been run.</no_experiment_found_text>
+        
+        <sidebar_choose_experiment_title>## Choose Experiment</sidebar_choose_experiment_title>
+        <sidebar_choose_experiment_input>Experiment ID or remark name</sidebar_choose_experiment_input>
+        <sidebar_only_show_remark_checkbox>Only Show Remarked Experiments</sidebar_only_show_remark_checkbox>
+        <sidebar_last_experiment_button>Last Experiment</sidebar_last_experiment_button>
+        <sidebar_the_first_experiment_button>Go to the First</sidebar_the_first_experiment_button>
+        <sidebar_next_experiment_button>Next Experiment</sidebar_next_experiment_button>
+        <sidebar_the_last_experiment_button>Go to the Last</sidebar_the_last_experiment_button>
+
+        <experiment_information_title>## Experiment Information</experiment_information_title>
+        <experiment_information_id>### Current Experiment ID: {CUR_ID}</experiment_information_id>
+        <experiment_not_exist_text>Experiment with id:{CUR_ID} does not exist. Please check the ID.</experiment_not_exist_text>
+        
+        <experiment_result_title>### Experiment Result:</experiment_result_title>
+        <experiment_result_image_select>**Select Experiment Result Image**</experiment_result_image_select>
+        <experiment_result_image_download>Download {SELECTED_IMG}</experiment_result_image_download>
+        <experiment_result_image_not_exist>No image detected in experiment with id:{CUR_ID}.</experiment_result_image_not_exist>
+        <experiment_result_scores_title>**Result Scores:**</experiment_result_scores_title>
+        <experiment_result_scores_notice>_**Notice**: The statistics are calculated based on the **{NUM_SAME_SETTING_RECORDS}** same setting experiments._</experiment_result_scores_notice>
+        <experiment_result_not_exists>No result found. Please check the status of the experiment.</experiment_result_not_exists>
+
+        <experiment_method_param_title>### Method Paramater Setting:</experiment_method_param_title>
+        <experiment_method_param_not_exist>Setting of current method can not be found</experiment_method_param_not_exist>
+        <experiment_method_remark>_Remark Name_: **{METHOD_REMARK_NAME}**</experiment_method_remark>
+        <experiment_method_index>Current Experiment Setting</experiment_method_index>
+        <experiment_method_no_param>No hyperparam setting used by current method.</experiment_method_no_param>
+    
+        <experiment_data_param_title>### Data Paramater Setting:</experiment_data_param_title>
+        <experiment_data_param_not_exist>Setting of current data can not be found</experiment_data_param_not_exist>
+        <experiment_data_remark>_Remark Name_: **{DATA_REMARK_NAME}**</experiment_data_remark>
+        <experiment_data_index>Current Experiment Setting</experiment_data_index>
+        <experiment_data_no_param>No hyperparam setting used by current data.</experiment_data_no_param>
+    
+        <experiment_detail_title>## Experiment Details Table</experiment_detail_title>
+
+        <experiment_delete_title>## Delete Current Experiment</experiment_delete_title>
+        <experiment_delete_warn>**Warning**: This operation will delete current experiment record and result, which is irreversible.</experiment_delete_warn>
+        <experiment_delete_checkbox>Delete Current Experiment</experiment_delete_checkbox>
+        <experiment_delete_confirm_button>Confirm</experiment_delete_confirm_button>
+    </details>
+        
+    <analysis>
+        <title>Experiment Analysis</title>
+        
+        <sidebar_select_analysis>
+            <title>## Experiment Analysis</title>
+            <radio_text>**Analysis Task**:</radio_text>
+            <radio_choice1>Single Setting Analysis</radio_choice1>
+            <radio_choice2>Multi Setting Analysis</radio_choice2>
+        </sidebar_select_analysis>
+
+        <select_setting>
+            <title>### Select Experiment Settings</title>
+            <select_task_title>**Select Task**</select_task_title>
+            <select_task_select>'Task:</select_task_select>
+            <select_method_title>**Select Method**</select_method_title>
+            <select_method_select>'Method:</select_method_select>
+            <select_data_title>**Select Data**</select_data_title>
+            <select_data_select>'Dataset:</select_data_select>
+            
+            <method_id_select>Method Setting:</method_id_select>
+            <method_index>Current Setting</method_index>
+            <remark_method_checkbox>Remark this method setting</remark_method_checkbox>
+            <remark_method_input>Set or change a remark name for current method setting. _Empty means delete remark name._</remark_method_input>
+            <remark_method_button>Confirm</remark_method_button>
+            <remark_method_failed_repeat>Error: Remark name already exists, please choose another one.</remark_method_failed_repeat>
+            <remark_method_failed_number>Error: Remark name cannot be a positive number.</remark_method_failed_number>
+            <method_no_param>No Parameters for this method</method_no_param>
+        
+            <data_id_select>Data Setting:</data_id_select>
+            <data_index>Current Setting</data_index>
+            <remark_data_checkbox>Remark this data setting</remark_data_checkbox>
+            <remark_data_input>Set or change a remark name for current data setting. _Empty means delete remark name._</remark_data_input>
+            <remark_data_button>Confirm</remark_data_button>
+            <remark_data_failed_repeat>Error: Remark name already exists, please choose another one.</remark_data_failed_repeat>
+            <remark_data_failed_number>Error: Remark name cannot be a positive number.</remark_data_failed_number>
+            <data_no_param>No Parameters for this dataset</data_no_param>
+        
+            <remark_max_score_checkbox>Remark max score experiment</remark_max_score_checkbox>
+            <remark_max_score_select>Select the score metric to remark based on:</remark_max_score_select>
+            <remark_max_score_all_button>Remark All Recorded Settings of Current Task</remark_max_score_all_button>
+            <remark_max_score_cur_button>Remark Only Current Setting</remark_max_score_cur_button>
+        
+            <remark_min_score_checkbox>Remark min score experiment</remark_min_score_checkbox>
+            <remark_min_score_select>Select the score metric to remark based on:</remark_min_score_select>
+            <remark_min_score_all_button>Remark All Recorded Settings of Current Task</remark_min_score_all_button>
+            <remark_min_score_cur_button>Remark Only Current Setting</remark_min_score_cur_button>
+        
+            <clear_remark_checkbox>Clear Remarks</clear_remark_checkbox>
+            <clear_remark_warn>**Warning**: This operation will clear all remark names, which is irreversible.</clear_remark_warn>
+            <clear_remark_all_button>Clear All Remarks of Current Task</clear_remark_all_button>
+            <clear_remark_cur_button>Clear Current Setting Remarks</clear_remark_cur_button>
+        </select_setting>
+
+        <show_images>
+            
+        </show_images>
+
+        <single_setting_analysis>
+
+        </single_setting_analysis>
+
+        <multi_setting_analysis>
+
+        </multi_setting_analysis>
+
+        <single_setting_plot>
+
+        </single_setting_plot>
+
+        <multi_setting_plot>
+
+        </multi_setting_plot>
+
+
+        <auto_remark_single_setting_failed_text>Error: No experiment found.</auto_remark_single_setting_failed_text>
+        <single_setting_analysis_text>Single Setting Analysis</single_setting_analysis_text>
+        <multi_setting_analysis_text>Multi Setting Analysis</multi_setting_analysis_text>
+        <multi_setting_record_cur_setting_button>Record Current Setting</multi_setting_record_cur_setting_button>
+    </analysis>
+
+    <table>
+        <title>Tables of the database</title>
+
+        <detect_tables>
+            <title>## Detected Tables</title>
+            <no_table_detected_text>No table detected in the database.</no_table_detected_text>
+            <table_select>**Table to select**:</table_select>
+        </detect_tables>
+
+        <select_tables>
+            <title>## Current Table:</title>
+            <used_sql>### Used SQL: ({SQL})</used_sql>
+            <sql_error>### SQL Error:</sql_error>
+        </select_tables>
+
+        <show_table>
+            <sidebar_title>## Table Pagination Display</sidebar_title>
+            <sidebar_part_input>Current Page:</sidebar_part_input>
+            <sidebar_set_max_checkbox>Set Max Record Counts Per Page</sidebar_set_max_checkbox>
+            <sidebar_set_max_input>Max Records Per Page:</sidebar_set_max_input>
+            <sidebar_set_max_confirm_button>Confirm</sidebar_set_max_confirm_button>
+            <sidebar_show_cur_counts>_{CUR_COUNTS}/{TOTAL_COUNTS} records in current page._</sidebar_show_cur_counts>
+        </show_table>
+
+        <input_sql>
+            <text>You can set the columns and condition for construct a select SQL sentense for the current table here.</text>
+            <condition_input>Condition</condition_input>
+            <condition_help>The condition for the select SQL sentense.</condition_help>
+            <columns_input>Columns</columns_input>
+            <columns_help>The columns you want to select in the SQL sentense.</columns_help>
+            <table>Table</table>
+            <run_button>Run</run_button>
+            <table_name>SQL Query Results</table_name>
+        </input_sql>
+
+        <input_full_sql>
+            <text>You can input a full SQL sentense here to select what you need and link different tables or views.</text>
+            <notice>_**Notice**: Keywords such as Drop, Delete are allowed here, but please be careful when using them._</notice>
+            <run_button>Run</run_button>
+            <table_name>SQL Query Results</table_name>
+        </input_full_sql>
+
+        <download_table_as_csv_button>Download as CSV</download_table_as_csv_button>
+    
+        <sidebar_sql_title>## SQL Query</sidebar_sql_title>
+        <sidebar_full_sql_checkbox>Use Full SQL Sentense For Whole DB</sidebar_full_sql_checkbox>
+        <sidebar_sql_checkbox>Use SQL By Columns &amp; Conditions &amp; Tables</sidebar_sql_checkbox>
+    </table>
+</translations>

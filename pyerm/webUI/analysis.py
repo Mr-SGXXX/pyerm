@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.2
+# Version: 0.3.3
 
 import pandas as pd
 import streamlit as st
@@ -28,39 +28,37 @@ import os
 from PIL import Image
 import re
 import io
-import matplotlib.pyplot as plt
-import seaborn as sns
 import typing
 
 from pyerm.database.dbbase import Database
 from pyerm.database.utils import get_result_statistics, method_id2remark_name, data_id2remark_name, experiment_remark_name2id, get_result_statistics_by_ids
 from pyerm.webUI import PYERM_HOME
+from pyerm.webUI.utils import boxplot, violinplot, lineplot, barplot
 
 def analysis():
     title()
     if os.path.exists(st.session_state.db_path) and st.session_state.db_path.endswith('.db'):
         db = Database(st.session_state.db_path, output_info=False)
         analysis_task = sidebar_select_analysis()
-        if analysis_task == 'Single Setting Analysis':
+        if analysis_task == st.session_state.lm["analysis.single_setting_analysis_text"]:
             task, method, method_id, dataset, dataset_id = select_setting(db)
             st.write('---')
             single_setting_analysis(db, task, method, method_id, dataset, dataset_id)
             
-        elif analysis_task == 'Multi Setting Analysis':
+        elif analysis_task == st.session_state.lm["analysis.multi_setting_analysis_text"]:
             task, method, method_id, dataset, dataset_id = select_setting(db)
             if task != st.session_state.cur_analysis_task:
                 st.session_state.recorded_analysis_setting = []
                 st.session_state.cur_analysis_task = task
-            if st.button('Record Current Setting', key='add_setting'):
+            if st.button(st.session_state.lm["analysis.multi_setting_record_cur_setting_button"], key='add_setting'):
                 if not (method, method_id, dataset, dataset_id) in st.session_state.recorded_analysis_setting:
                     st.session_state.recorded_analysis_setting.append((method, method_id, dataset, dataset_id))
                     st.rerun()
             st.write('---')
             multi_setting_analysis(db)
             
-    if st.sidebar.button('Refresh', key='refresh'):
+    if st.sidebar.button(st.session_state.lm["app.refresh"], key='refresh'):
         st.rerun()
-            
             
 def single_setting_analysis(db, task, method, method_id, dataset, dataset_id):
     st.write('### Statistics Results')
@@ -138,135 +136,149 @@ def multi_setting_analysis(db):
         st.write('No settings selected.')
     # st.sidebar.write(selected_settings)
     
-    
-    
-
 def sidebar_select_analysis():
-    st.sidebar.markdown('## Experiment Analysis')
-    return st.sidebar.radio('**Analysis Task**:', ['Single Setting Analysis', 'Multi Setting Analysis', ])
+    st.sidebar.markdown(st.session_state.lm["analysis.sidebar_select_analysis.title"])
+    return st.sidebar.radio(st.session_state.lm["analysis.sidebar_select_analysis.radio_text"],
+                            [
+                                st.session_state.lm["analysis.sidebar_select_analysis.radio_choice1"],
+                                st.session_state.lm["analysis.sidebar_select_analysis.radio_choice2"],
+                            ])
         
-
 def select_setting(db):
-    st.write('### Select Experiment Settings')
+    st.write(st.session_state.lm["analysis.select_setting.title"])
     cols = st.columns(3)
     with cols[0]:
-        st.write('**Select Task**')
+        st.write(st.session_state.lm["analysis.select_setting.select_task_title"])
         task_sql = f'SELECT DISTINCT task FROM experiment_list'
         tasks = [t[0] for t in db.conn.execute(task_sql).fetchall()]
-        task = st.selectbox('Task:', tasks)
+        task = st.selectbox(st.session_state.lm["analysis.select_setting.select_task_select"], tasks)
                 
     with cols[1]:
-        st.write('**Select Method**')
+        st.write(st.session_state.lm["analysis.select_setting.select_method_title"])
         method_sql = f'SELECT DISTINCT method FROM experiment_list WHERE task="{task}"'
         methods = [m[0] for m in db.cursor.execute(method_sql).fetchall()]
-        method = st.selectbox('Method:', methods)
+        method = st.selectbox(st.session_state.lm["analysis.select_setting.select_method_select"], methods)
         
     with cols[2]:
-        st.write("**Select Data**")
+        st.write(st.session_state.lm["analysis.select_setting.select_data_title"])
         dataset_sql = f'SELECT DISTINCT data FROM experiment_list WHERE task = "{task}" AND method = "{method}"'
         datasets = [d[0] for d in db.conn.execute(dataset_sql).fetchall()]
-        dataset = st.selectbox('Dataset:', datasets)
+        dataset = st.selectbox(st.session_state.lm["analysis.select_setting.select_data_select"], datasets)
         
     with cols[1]:
-        method_id_sql = f'SELECT DISTINCT method_id FROM experiment_list WHERE task = "{task}" AND method = "{method}" AND data = "{dataset}"'
-        method_ids = [m[0] for m in db.conn.execute(method_id_sql).fetchall()]
-        method_id = st.selectbox('Method Setting ID:', method_ids)
+        method_id_sql = f'SELECT DISTINCT experiment_list.method_id, method_{method}.remark FROM \
+            experiment_list INNER JOIN method_{method} ON experiment_list.method_id = method_{method}.method_id \
+            WHERE task = "{task}" AND method = "{method}" AND data = "{dataset}"'
+        method_ids = {(m[1] if m[1] is not None else m[0]):m[0] for m in db.conn.execute(method_id_sql).fetchall()}
+        method_id = st.selectbox(st.session_state.lm["analysis.select_setting.method_id_select"], method_ids.keys())
+        method_id = method_ids[method_id]
         if method_id != -1:
             method_table = db[f'method_{method}']
             method_info = method_table.select(where=f'method_id={method_id}')
             method_columns = method_table.columns
             method_info = pd.DataFrame(method_info, columns=method_columns)
-            method_remark_name = method_info['remark'][0]
+            # method_remark_name = method_info['remark'][0]
             method_info = method_info.drop(columns=['method_id', 'remark'])
-            method_info.index = [f'Current Setting']
-            if method_remark_name:
-                st.write(f'_Remark Name_: **{method_remark_name}**')
+            method_info.index = [st.session_state.lm["analysis.select_setting.method_index"]]
+            # if method_remark_name:
+            #     st.write(f'_Remark Name_: **{method_remark_name}**')
             st.dataframe(method_info.astype(str).transpose(), use_container_width=True, height=150)
-            if st.checkbox('Remark this method setting', key='remark_method'):
-                remark = st.text_input("Set or change a remark name for current setting. _Empty means delete remark name._", key='remark_input')
+            if st.checkbox(st.session_state.lm["analysis.select_setting.remark_method_checkbox"], key='remark_method'):
+                remark = st.text_input(st.session_state.lm["analysis.select_setting.remark_method_input"], key='remark_input')
+                if remark.isnumeric():
+                    st.session_state.error_flag1 = True
                 if remark == '':
                     remark = None
-                if st.button('Confirm', key='confirm_remark_method'):
+                if st.button(st.session_state.lm["analysis.select_setting.remark_method_button"], key='confirm_remark_method'):
                     try:
                         method_table.update(where=f'method_id={method_id}', remark=remark)
                         db.conn.commit()
                     except:
                         st.session_state.error_flag = True
                     st.rerun()
-            
+                if st.session_state.error_flag:
+                    st.write(st.session_state.lm["analysis.select_setting.remark_method_failed_repeat"])
+                    st.session_state.error_flag = False
+                if st.session_state.error_flag1:
+                    st.write(st.session_state.lm["analysis.select_setting.remark_method_failed_number"])
+                    st.session_state.error_flag1 = False
         else:
-            st.write('No Parameters for this method')
+            st.write(st.session_state.lm["analysis.select_setting.method_no_param"])
         
         
     with cols[2]:
         dataset_id_sql = f'SELECT DISTINCT data_id FROM experiment_list WHERE task = "{task}" AND method = "{method}" AND method_id = "{method_id}" AND data = "{dataset}"'
-        dataset_ids = [d[0] for d in db.conn.execute(dataset_id_sql).fetchall()]
-        dataset_id = st.selectbox('Dataset Setting ID:', dataset_ids)
+        dataset_ids = {data_id2remark_name(db, dataset, d[0]):d[0] for d in db.conn.execute(dataset_id_sql).fetchall()}
+        dataset_id = st.selectbox(st.session_state.lm["analysis.select_setting.data_id_select"], dataset_ids.keys())
+        dataset_id = dataset_ids[dataset_id]
         if dataset_id != -1:
             data_table = db[f'data_{dataset}']
             data_info = data_table.select(where=f'data_id={dataset_id}')
             data_columns = data_table.columns
             data_info = pd.DataFrame(data_info, columns=data_columns)
-            data_remark_name = data_info['remark'][0]
+            # data_remark_name = data_info['remark'][0]
             data_info = data_info.drop(columns=['data_id', 'remark'])
-            data_info.index = [f'Current Setting']
-            if data_remark_name:
-                st.write(f'_Remark Name_: **{data_remark_name}**')
+            data_info.index = [st.session_state.lm["analysis.select_setting.data_index"]]
+            # if data_remark_name:
+            #     st.write(f'_Remark Name_: **{data_remark_name}**')
             st.dataframe(data_info.astype(str).transpose(), use_container_width=True, height=150)
             
-            if st.checkbox('Remark this data setting', key='remark_data'):
-                remark = st.text_input("Set or change a remark name for current setting. _Empty means delete remark name._", key='remark_input')
+            if st.checkbox(st.session_state.lm["analysis.select_setting.remark_data_checkbox"], key='remark_data'):
+                remark = st.text_input(st.session_state.lm["analysis.select_setting.remark_data_input"], key='remark_input')
+                if remark.isnumeric():
+                    st.session_state.error_flag1 = True
                 if remark == '':
                     remark = None
-                if st.button('Confirm', key='confirm_remark_data'):
+                if st.button(st.session_state.lm["analysis.select_setting.remark_data_button"], key='confirm_remark_data'):
                     try:
                         data_table.update(where=f'data_id={dataset_id}', remark=remark)
                         db.conn.commit()
                     except:
                         st.session_state.error_flag = True
                     st.rerun()
+                if st.session_state.error_flag:
+                    st.write(st.session_state.lm["analysis.select_setting.remark_data_failed_repeat"])
+                    st.session_state.error_flag = False
+                if st.session_state.error_flag1:
+                    st.write(st.session_state.lm["analysis.select_setting.remark_data_failed_number"])
+                    st.session_state.error_flag1 = False
         else:
-            st.write('No Parameters for this dataset')
+            st.write(st.session_state.lm["analysis.select_setting.data_no_param"])
             
     with cols[0]:
         same_setting_id_sql = f"SELECT id FROM experiment_list WHERE method='{method}' AND method_id={method_id} AND data='{dataset}' AND data_id={dataset_id} AND task='{task}' AND status='finished'"
-        if st.checkbox('Remark max score experiment', key='remark_max_experiment'):
+        if st.checkbox(st.session_state.lm["analysis.select_setting.remark_max_score_checkbox"], key='remark_max_experiment'):
             score_columns = [col for col in db[f'result_{task}'].columns if not col.startswith("image_") and not col=="experiment_id"]
-            score_column = st.selectbox('Select the score metric to remark based on:', score_columns, key='score_column_max')
-            if st.button("Remark All Recorded Settings of Current Task", key='confirm_remark_max_all'):
+            score_column = st.selectbox(st.session_state.lm["analysis.select_setting.remark_max_score_select"], score_columns, key='score_column_max')
+            if st.button(st.session_state.lm["analysis.select_setting.remark_max_score_all_button"], key='confirm_remark_max_all'):
                 auto_remark_all_settings_for_task(db, task, score_column, 'max')
                 st.rerun()
-            if st.button("Remark Only Current Setting", key='confirm_remark_max_current'):
+            if st.button(st.session_state.lm["analysis.select_setting.remark_max_score_cur_button"], key='confirm_remark_max_current'):
                 auto_remark_single_setting(db, task, method, method_id, dataset, dataset_id, same_setting_id_sql, score_column, 'max')
                 st.rerun()
                 
-        if st.checkbox('Remark min score experiment', key='remark_min_experiment'):
+        if st.checkbox(st.session_state.lm["analysis.select_setting.remark_min_score_checkbox"], key='remark_min_experiment'):
             score_columns = [col for col in db[f'result_{task}'].columns if not col.startswith("image_") and not col=="experiment_id"]
-            score_column = st.selectbox('Select the score metric to remark based on:', score_columns, key='score_column_min')
-            if st.button("Remark All Recorded Settings of Current Task", key='confirm_remark_min_all'):
+            score_column = st.selectbox(st.session_state.lm["analysis.select_setting.remark_min_score_select"], score_columns, key='score_column_min')
+            if st.button(st.session_state.lm["analysis.select_setting.remark_min_score_all_button"], key='confirm_remark_min_all'):
                 auto_remark_all_settings_for_task(db, task, score_column, 'min')
                 st.rerun()
-            if st.button("Remark Only Current Setting", key='confirm_remark_min_current'):
+            if st.button(st.session_state.lm["analysis.select_setting.remark_min_score_cur_button"], key='confirm_remark_min_current'):
                 auto_remark_single_setting(db, task, method, method_id, dataset, dataset_id, same_setting_id_sql, score_column, 'min')
                 st.rerun()
                  
-        if st.checkbox('Clear Remarks', key='clear_remark'):
-            st.write('**Warning**: This operation will clear all remark names, which is irreversible.')
-            if st.button('Clear All Remarks of Current Task', key='confirm_clear_remark'):
+        if st.checkbox(st.session_state.lm["analysis.select_setting.clear_remark_checkbox"], key='clear_remark'):
+            st.write(st.session_state.lm["analysis.select_setting.clear_remark_warn"])
+            if st.button(st.session_state.lm["analysis.select_setting.clear_remark_all_button"], key='confirm_clear_remark'):
                 db[f'experiment_list'].update(where=f'task="{task}"', remark=None)
                 db.conn.commit()
                 st.rerun()
-            if st.button('Clear Current Setting Remarks', key='clear_current_remark'):
+            if st.button(st.session_state.lm["analysis.select_setting.clear_remark_cur_button"], key='clear_current_remark'):
                 db[f'experiment_list'].update(where=f'task="{task}" AND method="{method}" AND method_id={method_id} AND data="{dataset}" AND data_id={dataset_id}', remark=None)
                 db.conn.commit()
                 st.rerun()
     
-    if st.session_state.error_flag:
-        st.write('Error: Remark name already exists, please choose another one.')
-        st.session_state.error_flag = False
-    
     return task, method, method_id, dataset, dataset_id
-
 
 def show_images(db, task, experiments):
     pattern = re.compile(r'image_(\d+)$')
@@ -313,12 +325,11 @@ def delete_all_same_setting_experiment(db, task, same_setting_ids):
     st.rerun()
 
 def title():
-    st.title(f'Experiment Analysis')
+    st.title(st.session_state.lm["analysis.title"])
     if os.path.exists(st.session_state.db_path) and st.session_state.db_path.endswith('.db'):
-        st.write(f'Database Loaded (In {st.session_state.db_path})')
+        st.write(st.session_state.lm["app.dataset_load_success_text"].format(DB_PATH=st.session_state.db_path))
     else:
-        st.write('No database loaded, please load a database first.')
-        
+        st.write(st.session_state.lm["app.dataset_load_failed_text"])
         
 def single_setting_plot(db, task, same_setting_ids, plot_type):
     if plot_type == 'Lineplot' or plot_type == 'Barplot':
@@ -480,84 +491,12 @@ def multi_setting_plot(db, task, selected_settings, selected_metric, plot_type):
         mime="image/png"
     )
             
-
-        
-def boxplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **additional_params_dict):
-    fig, ax = plt.subplots(figsize=figsize)
-    if 'palette' not in additional_params_dict:
-        additional_params_dict['palette'] = 'Set2'
-    if 'linewidth' not in additional_params_dict:
-        additional_params_dict['linewidth'] = 2.5
-    sns.boxplot(data=df, hue=x, x=x, y=y, ax=ax, **additional_params_dict)
-    if title != '':
-        ax.set_title(title, fontsize=16)
-    ax.set_xlabel(x, fontsize=14)
-    ax.set_ylabel(y, fontsize=14)
-    ax.grid(True, linestyle='--', alpha=0.7)
-    buf = io.BytesIO()
-    fig.savefig(buf, format='png')
-    buf.seek(0)
-    return buf
-
-def violinplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **additional_params_dict):
-    fig, ax = plt.subplots(figsize=figsize)
-    if 'palette' not in additional_params_dict:
-        additional_params_dict['palette'] = 'Set2'
-    if 'linewidth' not in additional_params_dict:
-        additional_params_dict['linewidth'] = 2.5
-    sns.violinplot(data=df, hue=x, x=x, y=y, ax=ax, **additional_params_dict)
-    if title != '':
-        ax.set_title(title, fontsize=16)
-    ax.set_xlabel(x, fontsize=14)
-    ax.set_ylabel(y, fontsize=14)
-    ax.grid(True, linestyle='--', alpha=0.7)
-    buf = io.BytesIO()
-    fig.savefig(buf, format='png')
-    buf.seek(0)
-    return buf
-
-def lineplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **additional_params_dict):
-    fig, ax = plt.subplots(figsize=figsize)
-    if 'palette' not in additional_params_dict:
-        additional_params_dict['palette'] = 'Set2'
-    if 'linewidth' not in additional_params_dict:
-        additional_params_dict['linewidth'] = 2.5
-    sns.lineplot(data=df, x=x, y=y, ax=ax, **additional_params_dict)
-    if title != '':
-        ax.set_title(title, fontsize=16)
-    ax.set_xlabel(x, fontsize=14)
-    ax.set_ylabel(y, fontsize=14)
-    ax.grid(True, linestyle='--', alpha=0.7)
-    buf = io.BytesIO()
-    fig.savefig(buf, format='png')
-    buf.seek(0)
-    return buf
-
-def barplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **additional_params_dict):
-    fig, ax = plt.subplots(figsize=figsize)
-    if 'palette' not in additional_params_dict:
-        additional_params_dict['palette'] = 'Set2'
-    if 'linewidth' not in additional_params_dict:
-        additional_params_dict['linewidth'] = 2.5
-    sns.barplot(data=df, hue=x, x=x, y=y, ax=ax, **additional_params_dict)
-    if title != '':
-        ax.set_title(title, fontsize=16)
-    ax.set_xlabel(x, fontsize=14)
-    ax.set_ylabel(y, fontsize=14)
-    ax.grid(True, linestyle='--', alpha=0.7)
-    buf = io.BytesIO()
-    fig.savefig(buf, format='png')
-    buf.seek(0)
-    return buf
-
-
 def auto_remark_all_settings_for_task(db, task, score_column, type_flag:typing.Literal[f'max', f'min']='max'):
     all_setting_sql = f"SELECT DISTINCT method, method_id, data, data_id FROM experiment_list WHERE task='{task}'"
     all_settings = db.conn.execute(all_setting_sql).fetchall()
     for setting in all_settings:
         method, method_id, dataset, dataset_id = setting
         auto_remark_single_setting(db, task, method, method_id, dataset, dataset_id, score_column, type_flag)
-        
         
 def auto_remark_single_setting(db, task, method, method_id, dataset, dataset_id, score_column, type_flag:typing.Literal[f'max', f'min']='max'):
     same_setting_id_sql = f"SELECT id FROM experiment_list WHERE method='{method}' AND method_id={method_id} AND data='{dataset}' AND data_id={dataset_id} AND task='{task}' AND status='finished'"
@@ -579,9 +518,11 @@ def auto_remark_single_setting(db, task, method, method_id, dataset, dataset_id,
                 remark=f'{task}_{method}_{method_id2remark_name(db, method, method_id)}_{dataset}_{data_id2remark_name(db, dataset, dataset_id)}_{score_column}_min'
             db['experiment_list'].update(remark=None, where=f'remark="{remark}"')
             db[f'experiment_list'].update(where=f'id={score_experiment_id}', remark=remark)
+        elif f'{score_column}_max' in former_remark or f'{score_column}_min' in former_remark:
+            pass
         else:
             db[f'experiment_list'].update(where=f'id={score_experiment_id}', 
                                             remark=f'{former_remark}_{score_column}_max')
         db.conn.commit()
     else:
-        st.write('Error: No max score experiment found.')
+        st.write(st.session_state.lm["analysis.select_setting.auto_remark_single_setting_failed_text"])

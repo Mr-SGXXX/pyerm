@@ -33,6 +33,7 @@ from details import details
 from analysis import analysis
 
 from pyerm.webUI import PYERM_HOME
+from pyerm.webUI.utils import LanguageManager
 
 
 def init():
@@ -40,6 +41,7 @@ def init():
     if not os.path.exists(PYERM_HOME):
         os.makedirs(PYERM_HOME)
         config.set('DEFAULT', 'db_path', os.path.join(PYERM_HOME, 'experiment.db'))
+        config.set('DEFAULT', 'language', 'English')
     else:
         config.read(os.path.join(PYERM_HOME, 'config.ini'))
         
@@ -55,6 +57,10 @@ def init():
             db_path_list.append(st.session_state.db_path)
         st.session_state.db_path_list = db_path_list
         config.set('DEFAULT', 'db_path', ','.join(db_path_list))
+    if 'lm' not in st.session_state:
+        st.session_state.lm = LanguageManager(config.get('DEFAULT', 'language', fallback='English'))
+    else:
+        config.set('DEFAULT', 'language', st.session_state.lm.language)
     if 'table_name' not in st.session_state:
         st.session_state.table_name = None
     if 'sql' not in st.session_state:
@@ -75,6 +81,8 @@ def init():
         st.session_state.selected_settings = []
     if 'error_flag' not in st.session_state:
         st.session_state.error_flag = False
+    if 'error_flag1' not in st.session_state:
+        st.session_state.error_flag1 = False
     if 'cur_analysis_task' not in st.session_state:
         st.session_state.cur_analysis_task = None
     if 'single_table_part_max_records' not in st.session_state:
@@ -85,20 +93,29 @@ def init():
         config.write(f)
 
 def main():
+    init()
     st.set_page_config(page_title="PyERM WebUI", page_icon="📊", layout="wide", initial_sidebar_state="auto")
     st.sidebar.title("PyERM WebUI")
-    st.sidebar.markdown("## Please select a page")
-    init()
-    page = st.sidebar.radio("Page to select:", ["Home", "Recording", "Details", "Analysis", "Tables"], index=0)
-    if page == "Home":
+    st.sidebar.markdown(st.session_state.lm["app.sidebar_page_select"])
+    
+    page = st.sidebar.radio(st.session_state.lm["app.sidebar_page_select_radio"],
+            [
+                st.session_state.lm["app.sidebar_page_select_radio_1"],
+                st.session_state.lm["app.sidebar_page_select_radio_2"], 
+                st.session_state.lm["app.sidebar_page_select_radio_3"], 
+                st.session_state.lm["app.sidebar_page_select_radio_4"], 
+                st.session_state.lm["app.sidebar_page_select_radio_5"]
+            ], index=0)
+
+    if page == st.session_state.lm["app.sidebar_page_select_radio_1"]:
         home()
-    elif page == "Recording":
+    elif page == st.session_state.lm["app.sidebar_page_select_radio_2"]:
         record()
-    elif page == "Details":
+    elif page == st.session_state.lm["app.sidebar_page_select_radio_3"]:
         details()
-    elif page == "Analysis":
+    elif page == st.session_state.lm["app.sidebar_page_select_radio_4"]:
         analysis()
-    elif page == "Tables":
+    elif page == st.session_state.lm["app.sidebar_page_select_radio_5"]:
         tables()
         
     
