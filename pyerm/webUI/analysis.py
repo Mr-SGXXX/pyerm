@@ -31,7 +31,9 @@ import io
 import typing
 
 from pyerm.database.dbbase import Database
-from pyerm.database.utils import get_result_statistics, method_id2remark_name, data_id2remark_name, experiment_remark_name2id, get_result_statistics_by_ids
+from pyerm.database.utils import get_result_statistics, get_result_statistics_by_ids
+from pyerm.database.utils import method_id2remark_name, data_id2remark_name, experiment_remark_name2id
+from pyerm.database.utils import method_remark_name2id, data_remark_name2id
 from pyerm.webUI import PYERM_HOME
 from pyerm.webUI.utils import boxplot, violinplot, lineplot, barplot
 
@@ -61,14 +63,14 @@ def analysis():
         st.rerun()
             
 def single_setting_analysis(db, task, method, method_id, dataset, dataset_id):
-    st.write('### Statistics Results')
+    st.write(st.session_state.lm["analysis.single_setting_analysis.statistics_title"])
     result_statistics, same_setting_ids = get_result_statistics(db, task, method, method_id, dataset, dataset_id)
     num_records = len(same_setting_ids)
     if result_statistics is not None:
         st.dataframe(result_statistics, use_container_width=True)
-        st.write(f"_**Notice**: The statistics are calculated based on the **{num_records}** same setting experiments._")
+        st.write(st.session_state.lm["analysis.single_setting_analysis.statistics_notice"].format(NUM_RECORDS=num_records))
     else:
-        st.write('No results found for this setting.')
+        st.write(st.session_state.lm["analysis.single_setting_analysis.statistics_no_result_found"])
         return
     remarked_list = db[f'experiment_list'].select('remark', where=f'id in ({",".join(same_setting_ids)}) AND remark IS NOT NULL')
     remarked_list = [remark[0] for remark in remarked_list]
@@ -79,47 +81,47 @@ def single_setting_analysis(db, task, method, method_id, dataset, dataset_id):
     #         remarked_list.append(remark)
     cols = st.columns(2)
     with cols[0]:
-        st.write('### Statistical Chart of Score Metrics of current setting')
-        plot_type = st.selectbox('Select Chart Type:', ['Boxplot', 'Violinplot', 'Lineplot', 'Barplot'], index=0)
+        st.write(st.session_state.lm["analysis.single_setting_analysis.statistics_chart_title"])
+        plot_type = st.selectbox(st.session_state.lm["analysis.single_setting_analysis.statistics_chart_select"], ['Boxplot', 'Violinplot', 'Lineplot', 'Barplot'], index=0)
         single_setting_plot(db, task, same_setting_ids, plot_type)
     with cols[1]:
-        st.write('### Remark Experiment Images')
-        st.write('**Notice:**_The following images are generated during the experiment._')
+        st.write(st.session_state.lm["analysis.single_setting_analysis.remarked_experiment_img_title"])
+        st.write(st.session_state.lm["analysis.single_setting_analysis.remarked_experiment_img_notice"])
         if remarked_list:
             show_images(db, task, remarked_list)
         else:
-            st.write('No experiment of current setting remarked.')
+            st.write(st.session_state.lm["analysis.single_setting_analysis.remarked_experiment_not_found"])
     st.write('---')
-    st.markdown('## Delete All Current Setting Experiments')
-    st.markdown('**Warning**: This operation will delete current experiment record and result, which is irreversible.')
-    if st.checkbox('Delete All Same Setting Experiments', value=False):
-        if st.button('Confirm', key='delete_same_setting'):
+    st.markdown(st.session_state.lm["analysis.single_setting_analysis.delete_all_cur_setting_title"])
+    st.markdown(st.session_state.lm["analysis.single_setting_analysis.delete_all_cur_setting_warn"])
+    if st.checkbox(st.session_state.lm["analysis.single_setting_analysis.delete_all_cur_setting_checkbox"], value=False):
+        if st.button(st.session_state.lm["analysis.single_setting_analysis.delete_all_cur_setting_confirm_button"], key='delete_same_setting'):
             delete_all_same_setting_experiment(db, task, same_setting_ids)
 
 def multi_setting_analysis(db):
-    st.sidebar.write('## Current Task:', st.session_state.cur_analysis_task)
-    if st.sidebar.button('Clear All Recorded Settings', key='clear_recorded'):
+    st.sidebar.write(st.session_state.lm["analysis.multi_setting_analysis.sidebar_cur_task_title"], st.session_state.cur_analysis_task)
+    if st.sidebar.button(st.session_state.lm["analysis.multi_setting_analysis.sidebar_clear_all_recorded_settins_button"], key='clear_recorded'):
         st.session_state.recorded_analysis_setting = []
         st.rerun()
-    st.sidebar.write('### Recorded Settings:')
-    st.sidebar.write('**Click to select the settings to analyze.**')
-    st.sidebar.write('**Notice:**_The order you select will be the order of the statistics._')
+    st.sidebar.write(st.session_state.lm["analysis.multi_setting_analysis.sidebar_recorded_setting_title"])
+    st.sidebar.write(st.session_state.lm["analysis.multi_setting_analysis.sidebar_recorded_setting_text"])
+    st.sidebar.write(st.session_state.lm["analysis.multi_setting_analysis.sidebar_recorded_setting_notice"])
     # for setting in st.session_state.recorded_analysis_setting:
     #     if st.sidebar.checkbox(f'{setting[0]}-{method_id2remark_name(db, setting[0], setting[1])}-{setting[2]}-{data_id2remark_name(db, setting[2], setting[3])}'):
     #         selected_settings.append(setting)
     options = [f'{setting[0]}~{method_id2remark_name(db, setting[0], setting[1])}~{setting[2]}~{data_id2remark_name(db, setting[2], setting[3])}' for setting in st.session_state.recorded_analysis_setting]                              
-    st.session_state.selected_settings = st.sidebar.multiselect('Select settings to analyze:', options, default=options)
+    st.session_state.selected_settings = st.sidebar.multiselect(st.session_state.lm["analysis.multi_setting_analysis.sidebar_recorded_setting_select"], options, default=options)
     selected_settings = [setting.split('~') for setting in st.session_state.selected_settings]
     # st.write(selected_settings)
     result_table = db[f'result_{st.session_state.cur_analysis_task}']
     metrics = [col for col in result_table.columns if not col.startswith("image_") and not col=="experiment_id"]
-    selected_metric =  st.sidebar.selectbox('Select a metric to analyze:', metrics)
+    selected_metric =  st.sidebar.selectbox(st.session_state.lm["analysis.multi_setting_analysis.sidebar_metric_select"], metrics)
     if len(selected_settings) > 0:
-        st.write(f'### Statistics Results on {selected_metric}')
+        st.write(st.session_state.lm["analysis.multi_setting_analysis.statistics_results_title"].format(SELECTED_METRIC=selected_metric))
         df_list = []
         num_records_list = []
         for setting in selected_settings:
-            result_statistics, same_ids = get_result_statistics(db, st.session_state.cur_analysis_task, setting[0], setting[1], setting[2], setting[3])
+            result_statistics, same_ids = get_result_statistics(db, st.session_state.cur_analysis_task, setting[0], method_remark_name2id(db, setting[0], setting[1]), setting[2], data_id2remark_name(db, setting[2], setting[3]))
             if result_statistics is not None:
                 df_list.append(result_statistics[selected_metric])
                 num_records_list.append(len(same_ids))
@@ -129,11 +131,11 @@ def multi_setting_analysis(db):
 
             df.columns = [f'{setting[0]}-{method_id2remark_name(db, setting[0], setting[1])}-{setting[2]}-{data_id2remark_name(db, setting[2], setting[3])}' for setting in selected_settings]
             st.dataframe(df, use_container_width=True) 
-        st.write(f'### Statistical Chart of Score Metrics of selected settings on {selected_metric}')
-        plot_type = st.selectbox('Select Chart Type:', ['Boxplot', 'Violinplot', 'Lineplot', 'Barplot'], index=0)
+        st.write(st.session_state.lm["analysis.multi_setting_analysis.statistics_score_metrics_title"].format(SELECTED_METRIC=selected_metric))
+        plot_type = st.selectbox(st.session_state.lm["analysis.multi_setting_analysis.statistics_chart_type_select"], ['Boxplot', 'Violinplot', 'Lineplot', 'Barplot'], index=0)
         multi_setting_plot(db, st.session_state.cur_analysis_task, selected_settings, selected_metric, plot_type)
     else:
-        st.write('No settings selected.')
+        st.write(st.session_state.lm["analysis.multi_setting_analysis.no_setting_selected_text"])
     # st.sidebar.write(selected_settings)
     
 def sidebar_select_analysis():
@@ -283,9 +285,9 @@ def select_setting(db):
 def show_images(db, task, experiments):
     pattern = re.compile(r'image_(\d+)$')
     image_dict = {}
-    selected = st.selectbox('Select an experiment to show images:', experiments)
+    selected = st.selectbox(st.session_state.lm["analysis.show_images.experiment_select"], experiments)
     if selected is None:
-        st.write('No experiment of current setting remarked.')
+        st.write(st.session_state.lm["analysis.show_images.experiment_no_remark_text"])
         return
     if selected.isdigit():
         selected_id = int(selected)
@@ -300,19 +302,19 @@ def show_images(db, task, experiments):
             image_dict[result_info[f"{name}_name"][0]] = result_info[name][0]
         elif result_info[name].isnull().all():
             break
-    selected_img = st.selectbox('Select an image to show:', list(image_dict.keys()))
+    selected_img = st.selectbox(st.session_state.lm["analysis.show_images.experiment_img_select"], list(image_dict.keys()))
     if selected_img:
         st.image(Image.open(io.BytesIO(image_dict[selected_img])))
         with io.BytesIO(image_dict[selected_img]) as buf:
             img_data = buf.read()
         st.download_button(
-            label=f"Download {selected_img}",
+            label=st.session_state.lm["analysis.show_images.experiment_img_download_button"].format(SELECTED_IMG=selected_img),
             data=img_data,
             file_name=f"{selected_img}.png",
             mime="image/png"
         )
     else:
-        st.write(f'No image detected for experiment {selected_id}')
+        st.write(st.session_state.lm["analysis.show_images.experiment_img_not_exist"].format(SELECTED_ID=selected_id))
         
 def delete_all_same_setting_experiment(db, task, same_setting_ids):
     experiment_table = db['experiment_list']
@@ -333,17 +335,17 @@ def title():
         
 def single_setting_plot(db, task, same_setting_ids, plot_type):
     if plot_type == 'Lineplot' or plot_type == 'Barplot':
-        value_type = st.selectbox('Select Value Type Used in the Chart:', ['Max', 'Min', 'Avg', 'Std', 'Median'], index=2)
-    if st.checkbox(f"Customize {plot_type}", key='self_defined_plot'):
+        value_type = st.selectbox(st.session_state.lm["analysis.single_setting_plot.value_type_select"], ['Max', 'Min', 'Avg', 'Std', 'Median'], index=2)
+    if st.checkbox(st.session_state.lm["analysis.single_setting_plot.customize_checkbox"].format(PLOT_TYPE=plot_type), key='self_defined_plot'):
         cols = st.columns(2)
         with cols[0]:
-            figure_size_x = st.number_input('Figure Size X:', value=10, min_value=1, step=1, key='figure_size_x')
+            figure_size_x = st.number_input(st.session_state.lm["analysis.single_setting_plot.customize_figure_x_input"], value=10, min_value=1, step=1, key='figure_size_x')
         with cols[1]:
-            figure_size_y = st.number_input('Figure Size Y:', value=6, min_value=1, step=1, key='figure_size_y')
-        title = st.text_input(f'{plot_type} Title:', f'', key='plot_title_single')
-        x_label = st.text_input('X Label:', f'Metric', key='plot_x_label')
-        y_label = st.text_input('Y Label:', f'Score', key='plot_y_label')
-        additional_params_str = st.text_input('Additional Parameters (E,g: hue=A, color=B):', f'', key='plot_additional_params')
+            figure_size_y = st.number_input(st.session_state.lm["analysis.single_setting_plot.customize_figure_y_input"], value=6, min_value=1, step=1, key='figure_size_y')
+        title = st.text_input(st.session_state.lm["analysis.single_setting_plot.customize_title_input"].format(PLOT_TYPE=plot_type), f'', key='plot_title_single')
+        x_label = st.text_input(st.session_state.lm["analysis.single_setting_plot.customize_x_label_input"], f'Metric', key='plot_x_label')
+        y_label = st.text_input(st.session_state.lm["analysis.single_setting_plot.customize_y_label_input"], f'Score', key='plot_y_label')
+        additional_params_str = st.text_input(st.session_state.lm["analysis.single_setting_plot.customize_additional_param_input"], f'', key='plot_additional_params')
         additional_params_dict = {}
         if not additional_params_str == '':
             additional_params = additional_params_str.split(',')
@@ -359,10 +361,10 @@ def single_setting_plot(db, task, same_setting_ids, plot_type):
         additional_params_dict = {}
     result_table = db[f'result_{task}']
     score_columns = [col for col in result_table.columns if not col.startswith("image_") and not col=="experiment_id"]
-    st.sidebar.write('### Select Metrics to show in the plot')
-    selected_metrics = st.sidebar.multiselect('Metrics:', score_columns, default=score_columns)
+    st.sidebar.write(st.session_state.lm["analysis.single_setting_plot.sidebar_metric_select_title"])
+    selected_metrics = st.sidebar.multiselect(st.session_state.lm["analysis.single_setting_plot.sidebar_metric_select"], score_columns, default=score_columns)
     if len(selected_metrics) == 0:
-        st.write('No metrics selected.')
+        st.write(st.session_state.lm["analysis.single_setting_plot.sidebar_metric_select_empty_text"])
         return
     plot_data = {x_label: [], y_label: []}
     if plot_type == 'Boxplot' or plot_type == 'Violinplot':
@@ -398,7 +400,7 @@ def single_setting_plot(db, task, same_setting_ids, plot_type):
     setting = db['experiment_list'].select('method', 'method_id', 'data', 'data_id', where=f'id={same_setting_ids[0]}')[0]
     setting_name = f'{setting[0]}~{method_id2remark_name(db, setting[0], setting[1])}~{setting[2]}~{data_id2remark_name(db, setting[2], setting[3])}'
     st.download_button(
-        label=f"Download {plot_type} Image",
+        label=st.session_state.lm["analysis.single_setting_plot.figure_download_button"].format(PLOT_TYPE=plot_type),
         data=img_data,
         file_name=f"{plot_type}_{task if title == '' else title}_{setting_name}.png",
         mime="image/png"
@@ -406,18 +408,18 @@ def single_setting_plot(db, task, same_setting_ids, plot_type):
     
 def multi_setting_plot(db, task, selected_settings, selected_metric, plot_type):
     if plot_type == 'Lineplot' or plot_type == 'Barplot':
-        value_type = st.selectbox('Select Value Type Used in the Chart:', ['Max', 'Min', 'Avg', 'Std', 'Median'], index=2)
-    if st.checkbox(f"Customize {plot_type}", key='self_defined_plot'):
+        value_type = st.selectbox(st.session_state.lm["analysis.multi_setting_plot.value_type_select"], ['Max', 'Min', 'Avg', 'Std', 'Median'], index=2)
+    if st.checkbox(st.session_state.lm["analysis.multi_setting_plot.customize_checkbox"].format(PLOT_TYPE=plot_type), key='self_defined_plot'):
         cols = st.columns(2)
         with cols[0]:
-            figure_size_x = st.number_input('Figure Size X:', value=10, min_value=1, step=1, key='figure_size_x')
+            figure_size_x = st.number_input(st.session_state.lm["analysis.multi_setting_plot.customize_figure_x_input"], value=10, min_value=1, step=1, key='figure_size_x')
         with cols[1]:
-            figure_size_y = st.number_input('Figure Size Y:', value=6, min_value=1, step=1, key='figure_size_y')
-        title = st.text_input(f'{plot_type} Title:', f'', key='plot_title_multi')
-        x_label = st.text_input('X Label:', f'Setting', key='plot_x_label')
-        y_label = st.text_input('Y Label:', selected_metric, key='plot_y_label')
-        col_name_list = st.text_input('Column Names (splited by comma\",\"):', f'', key='plot_col_name')
-        additional_params_str = st.text_input('Additional Parameters (E,g: hue=A, color=B):', f'', key='plot_additional_params')
+            figure_size_y = st.number_input(st.session_state.lm["analysis.multi_setting_plot.customize_figure_y_input"], value=6, min_value=1, step=1, key='figure_size_y')
+        title = st.text_input(st.session_state.lm["analysis.multi_setting_plot.customize_title_input"].format(PLOT_TYPE=plot_type), f'', key='plot_title_multi')
+        x_label = st.text_input(st.session_state.lm["analysis.multi_setting_plot.customize_x_label_input"], f'Setting', key='plot_x_label')
+        y_label = st.text_input(st.session_state.lm["analysis.multi_setting_plot.customize_y_label_input"], selected_metric, key='plot_y_label')
+        col_name_list = st.text_input(st.session_state.lm["analysis.multi_setting_plot.customize_col_name_input"], f'', key='plot_col_name')
+        additional_params_str = st.text_input(st.session_state.lm["analysis.multi_setting_plot.customize_additional_param_input"], f'', key='plot_additional_params')
         additional_params_dict = {}
         if not additional_params_str == '':
             additional_params = additional_params_str.split(',')
@@ -427,7 +429,7 @@ def multi_setting_plot(db, task, selected_settings, selected_metric, plot_type):
         if not col_name_list == '':
             col_names = col_name_list.split(',')
             if not len(col_names) == len(selected_settings):
-                st.write('Error: Column names count should be equal to selected settings count.')
+                st.write(st.session_state.lm["analysis.multi_setting_plot.customize_col_name_mismatch_text"])
                 return
     else:
         title = ''
@@ -443,7 +445,7 @@ def multi_setting_plot(db, task, selected_settings, selected_metric, plot_type):
     setting_name_dict = {}
     used_setting_names_counts = {}
     for i, setting in enumerate(selected_settings):
-        _, same_ids = get_result_statistics(db, task, setting[0], setting[1], setting[2], setting[3])
+        _, same_ids = get_result_statistics(db, task, setting[0], method_remark_name2id(db, setting[0], setting[1]), setting[2], data_remark_name2id(db, setting[2], setting[3]))
         if not col_name_list == '':
             plot_data[x_label].append(col_names[i])
         else:
@@ -485,7 +487,7 @@ def multi_setting_plot(db, task, selected_settings, selected_metric, plot_type):
     img_data = boxplot_buf.read()
     boxplot_buf.close()
     st.download_button(
-        label=f"Download {plot_type} Image",
+        label=st.session_state.lm["analysis.multi_setting_plot.figure_download_button"].format(PLOT_TYPE=plot_type),
         data=img_data,
         file_name=f"{plot_type}_{task if title == '' else title}_{selected_metric}.png",
         mime="image/png"

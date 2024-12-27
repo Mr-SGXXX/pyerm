@@ -89,6 +89,7 @@ The only necessary column for detail table is the detail id (which can be set au
 - [x] Web UI Visualization 
 - [x] Commonly Used Analyze Tools
 - [x] Mutli Language Manager
+- [ ] Reorganize id & param settings of tables
 - [ ] Data & Method description table
 - [ ] Experiment Summary Report Generate
 - [ ] Bug fix & performance improving

@@ -30,18 +30,27 @@ import argparse
 import os
 import shutil
 from zipfile import ZipFile
+from concurrent.futures import ThreadPoolExecutor
 
 USER_HOME = os.path.expanduser('~')
+
+def save_image(row, col, output_img_dir, output_path):
+    img_data = getattr(row, col)
+    if img_data is not None:
+        img = Image.open(io.BytesIO(img_data))
+        img_abs_path = os.path.join(output_img_dir, f"ID{row.experiment_id}_{col}.png")
+        img.save(img_abs_path)
+        img_rel_path = os.path.relpath(img_abs_path, os.path.dirname(output_path))
+        return img_rel_path
+    return None
 
 def export_data(db_path:str, output_dir:str):
     db_name = os.path.basename(db_path)
     db_name = os.path.splitext(db_name)[0]
     output_path = os.path.join(output_dir, db_name, f"{db_name}.xlsx")
-    if not os.path.exists(os.path.dirname(output_path)):
-        os.makedirs(os.path.dirname(output_path))
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     output_img_dir = os.path.join(os.path.dirname(output_path), "result_imgs")
-    if not os.path.exists(output_img_dir):
-        os.makedirs(output_img_dir)
+    os.makedirs(output_img_dir, exist_ok=True)
 
     conn = sqlite3.connect(db_path)
     table_names = pd.read_sql_query("SELECT name FROM sqlite_master WHERE type IN ('table', 'view')", conn)
@@ -52,23 +61,13 @@ def export_data(db_path:str, output_dir:str):
         if table_name.startswith("result_"):
             for col in df.columns:
                 if col.startswith("image_") and not col.endswith("_name") and not df[f"{col}_name"].isnull().all():
-                    img_paths = []
-                    for i, row in df.iterrows():
-                        img_data = row[col]
-                        if img_data is not None:
-                            img = Image.open(io.BytesIO(img_data))
-                            img_abs_path = os.path.join(output_img_dir, f"ID{row['experiment_id']}_{col}.png")
-                            img.save(img_abs_path)
-                            img_rel_path = os.path.relpath(img_abs_path, os.path.dirname(output_path))
-                            img_paths.append(img_rel_path)
-                        else:
-                            img_paths.append(None)
+                    with ThreadPoolExecutor() as executor:
+                        img_paths = list(executor.map(lambda row: save_image(row, col, output_img_dir, output_path), df.itertuples()))
                     df[col] = img_paths
         df.to_excel(writer, sheet_name=table_name, index=False)
         if table_name.startswith("result_"):
             workbook  = writer.book
             worksheet = writer.sheets[table_name]
-
             for col_num, col in enumerate(df.columns):
                 if col.startswith("image_") and not col.endswith("_name"):
                     for row_num, cell_value in enumerate(df[col], start=1):
@@ -86,8 +85,6 @@ def zip_dir(dir_path:str, zip_path:str, remove_original=False):
             for file in files:
                 file_path = os.path.join(root, file)
                 zipf.write(file_path, os.path.relpath(file_path, dir_path))
-                
-                # print(file_path)
     if remove_original:
         shutil.rmtree(dir_path)
         

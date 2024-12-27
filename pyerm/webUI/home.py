@@ -41,8 +41,7 @@ REPO_URL = "https://github.com/Mr-SGXXX/pyerm"
 def home():
     title()
     st.write("---")
-    change_language()
-    st.write("---")
+    
 
     cols = st.columns(2)
     with cols[0]:
@@ -71,6 +70,8 @@ def home():
             if st.checkbox(st.session_state.lm["home.export_db_checkbox"], value=False):
                 st.write(st.session_state.lm["home.export_db_notice"])
                 download_db()
+    st.write("---")
+    change_language()
     st.write("---")
     clean_cache()
     if st.sidebar.button(st.session_state.lm["app.refresh"], key='refresh'):

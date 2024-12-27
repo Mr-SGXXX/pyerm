@@ -145,13 +145,13 @@
         <experiment_result_scores_notice>_**注意**：统计数据基于**{NUM_SAME_SETTING_RECORDS}**个相同设置的实验计算。_</experiment_result_scores_notice>
         <experiment_result_not_exists>未找到结果，请检查实验状态。</experiment_result_not_exists>
 
-        <experiment_method_param_title>### 方法参数设置：</experiment_method_param_title>
+        <experiment_method_param_title>### 方法参数：</experiment_method_param_title>
         <experiment_method_param_not_exist>找不到当前方法的设置</experiment_method_param_not_exist>
         <experiment_method_remark>_备注名_: **{METHOD_REMARK_NAME}**</experiment_method_remark>
         <experiment_method_index>当前实验设置</experiment_method_index>
         <experiment_method_no_param>当前方法未使用超参数设置。</experiment_method_no_param>
         
-        <experiment_data_param_title>### 数据参数设置：</experiment_data_param_title>
+        <experiment_data_param_title>### 数据参数：</experiment_data_param_title>
         <experiment_data_param_not_exist>找不到当前数据的设置</experiment_data_param_not_exist>
         <experiment_data_remark>_备注名_: **{DATA_REMARK_NAME}**</experiment_data_remark>
         <experiment_data_index>当前实验设置</experiment_data_index>
@@ -164,6 +164,131 @@
         <experiment_delete_checkbox>删除当前实验</experiment_delete_checkbox>
         <experiment_delete_confirm_button>确认</experiment_delete_confirm_button>
     </details>
+
+    <analysis>
+        <title>实验分析</title>
+        
+        <sidebar_select_analysis>
+            <title>## 实验分析</title>
+            <radio_text>**分析任务**:</radio_text>
+            <radio_choice1>单一设置分析</radio_choice1>
+            <radio_choice2>多设置分析</radio_choice2>
+        </sidebar_select_analysis>
+
+        <select_setting>
+            <title>### 选择实验设置</title>
+            <select_task_title>**选择任务**</select_task_title>
+            <select_task_select>任务:</select_task_select>
+            <select_method_title>**选择方法**</select_method_title>
+            <select_method_select>方法:</select_method_select>
+            <select_data_title>**选择数据**</select_data_title>
+            <select_data_select>数据集:</select_data_select>
+            
+            <method_id_select>方法设置:</method_id_select>
+            <method_index>当前设置</method_index>
+            <remark_method_checkbox>备注此方法参数设置</remark_method_checkbox>
+            <remark_method_input>设置或更改当前方法设置的备注名称。_为空表示删除备注名称。_</remark_method_input>
+            <remark_method_button>确认</remark_method_button>
+            <remark_method_failed_repeat>错误：备注名称已存在，请选择其他名称。</remark_method_failed_repeat>
+            <remark_method_failed_number>错误：备注名称不能为正数。</remark_method_failed_number>
+            <method_no_param>此方法无参数</method_no_param>
+        
+            <data_id_select>数据设置:</data_id_select>
+            <data_index>当前设置</data_index>
+            <remark_data_checkbox>备注此数据参数设置</remark_data_checkbox>
+            <remark_data_input>设置或更改当前数据设置的备注名称。_为空表示删除备注名称。_</remark_data_input>
+            <remark_data_button>确认</remark_data_button>
+            <remark_data_failed_repeat>错误：备注名称已存在，请选择其他名称。</remark_data_failed_repeat>
+            <remark_data_failed_number>错误：备注名称不能为正数。</remark_data_failed_number>
+            <data_no_param>此数据集无参数</data_no_param>
+        
+            <remark_max_score_checkbox>备注最高分实验</remark_max_score_checkbox>
+            <remark_max_score_select>选择基于哪个分数指标进行备注:</remark_max_score_select>
+            <remark_max_score_all_button>备注当前任务所有设置的实验</remark_max_score_all_button>
+            <remark_max_score_cur_button>仅备注当前设置</remark_max_score_cur_button>
+        
+            <remark_min_score_checkbox>备注最低分实验</remark_min_score_checkbox>
+            <remark_min_score_select>选择基于哪个分数指标进行备注:</remark_min_score_select>
+            <remark_min_score_all_button>备注当前任务所有设置的实验</remark_min_score_all_button>
+            <remark_min_score_cur_button>仅备注当前设置</remark_min_score_cur_button>
+        
+            <clear_remark_checkbox>清除备注</clear_remark_checkbox>
+            <clear_remark_warn>**警告**：此操作将清除所有备注名称，且无法撤销。</clear_remark_warn>
+            <clear_remark_all_button>清除当前任务的所有备注</clear_remark_all_button>
+            <clear_remark_cur_button>清除当前设置的备注</clear_remark_cur_button>
+        </select_setting>
+        
+        <show_images>
+            <experiment_select>选择要显示图像的实验：</experiment_select>
+            <experiment_no_remark_text>当前设置中没有已备注实验。</experiment_no_remark_text>
+            <experiment_img_select>选择要显示的图像：</experiment_img_select>
+            <experiment_img_download_button>下载 {SELECTED_IMG}</experiment_img_download_button>
+            <experiment_img_not_exist>实验{SELECTED_ID}中未检测到图像。</experiment_img_not_exist>
+        </show_images>
+
+        <single_setting_analysis>
+            <statistics_title>### 统计结果</statistics_title>
+            <statistics_notice>_**注意**: 统计数据基于**{NUM_RECORDS}**个相同设置的实验计算。_</statistics_notice>
+            <statistics_no_result_found>未找到此设置的结果。</statistics_no_result_found>
+            <statistics_chart_title>### 当前设置的分数指标统计图</statistics_chart_title>
+            <statistics_chart_select>选择图表类型:</statistics_chart_select>
+            <remarked_experiment_img_title>### 已备注实验的图像</remarked_experiment_img_title>
+            <remarked_experiment_img_notice>**注意:**_以下图像是在实验过程中生成的。_</remarked_experiment_img_notice>
+            <remarked_experiment_not_found>当前设置没有备注任何实验。</remarked_experiment_not_found>
+            <delete_all_cur_setting_title>## 删除当前设置的所有实验记录</delete_all_cur_setting_title>
+            <delete_all_cur_setting_warn>**警告**: 此操作将删除当前设置的所有实验记录，且无法撤销。</delete_all_cur_setting_warn>
+            <delete_all_cur_setting_checkbox>删除所有同设置实验记录</delete_all_cur_setting_checkbox>
+            <delete_all_cur_setting_confirm_button>确认</delete_all_cur_setting_confirm_button>
+        </single_setting_analysis>
+
+        <multi_setting_analysis>
+            <sidebar_cur_task_title>## 当前任务：</sidebar_cur_task_title>
+            <sidebar_clear_all_recorded_settins_button>清除所有已记录设置</sidebar_clear_all_recorded_settins_button>
+            <sidebar_recorded_setting_title>### 已记录设置:</sidebar_recorded_setting_title>
+            <sidebar_recorded_setting_text>**选择要分析的设置。**</sidebar_recorded_setting_text>
+            <sidebar_recorded_setting_notice>**注意:**_选择的顺序将是统计表的顺序。_</sidebar_recorded_setting_notice>
+            <sidebar_recorded_setting_select>选择待分析设置:</sidebar_recorded_setting_select>
+            <sidebar_metric_select>选择待分析指标:</sidebar_metric_select>
+            <statistics_results_title>### {SELECTED_METRIC}指标统计结果</statistics_results_title>
+            <statistics_score_metrics_title>### 已选设置{SELECTED_METRIC}指标统计图</statistics_score_metrics_title>
+            <statistics_chart_type_select>选择图表类型:</statistics_chart_type_select>
+            <no_setting_selected_text>未选择任何设置。</no_setting_selected_text>
+        </multi_setting_analysis>
+
+        <single_setting_plot>
+            <value_type_select>选择图表中使用的值类型：</value_type_select>
+            <customize_checkbox>自定义{PLOT_TYPE}</customize_checkbox>
+            <customize_figure_x_input>图表宽度：</customize_figure_x_input>
+            <customize_figure_y_input>图表高度：</customize_figure_y_input>
+            <customize_title_input>{PLOT_TYPE} 标题：</customize_title_input>
+            <customize_x_label_input>X轴标签：</customize_x_label_input>
+            <customize_y_label_input>Y轴标签：</customize_y_label_input>
+            <customize_additional_param_input>附加参数（例如：hue=A，color=B）：</customize_additional_param_input>
+            <sidebar_metric_select_title>### 选择要在图表中显示的指标</sidebar_metric_select_title>
+            <sidebar_metric_select>指标：</sidebar_metric_select>
+            <sidebar_metric_select_empty_text>未选择任何指标。</sidebar_metric_select_empty_text>
+            <figure_download_button>下载{PLOT_TYPE}图片</figure_download_button>
+        </single_setting_plot>
+
+        <multi_setting_plot>
+            <value_type_select>选择图表中使用的值类型：</value_type_select>
+            <customize_checkbox>自定义{PLOT_TYPE}</customize_checkbox>
+            <customize_figure_x_input>图表宽度：</customize_figure_x_input>
+            <customize_figure_y_input>图表高度：</customize_figure_y_input>
+            <customize_title_input>{PLOT_TYPE} 标题：</customize_title_input>
+            <customize_x_label_input>X轴标签：</customize_x_label_input>
+            <customize_y_label_input>Y轴标签：</customize_y_label_input>
+            <customize_col_name_input>列名（用逗号“,”分隔）：</customize_col_name_input>
+            <customize_col_name_mismatch_text>错误：列名数量应等于所选设置数量。</customize_col_name_mismatch_text>
+            <customize_additional_param_input>附加参数（例如：hue=A，color=B）：</customize_additional_param_input>
+            <figure_download_button>下载{PLOT_TYPE}图片</figure_download_button>
+        </multi_setting_plot>
+
+        <auto_remark_single_setting_failed_text>错误：未找到任何实验</auto_remark_single_setting_failed_text>
+        <single_setting_analysis_text>单一设置分析</single_setting_analysis_text>
+        <multi_setting_analysis_text>多设置分析</multi_setting_analysis_text>
+        <multi_setting_record_cur_setting_button>记录当前设置</multi_setting_record_cur_setting_button>
+    </analysis>
 
     <table>
         <title>数据库的表</title>
@@ -190,7 +315,7 @@
         </show_table>
 
         <input_sql>
-            <text>您可以在此处设置列和条件以构建当前表的选择SQL语句。</text>
+            <text>您可以在此处设置列和条件以构建当前表的SQL选择语句。</text>
             <condition_input>条件</condition_input>
             <condition_help>选择SQL语句的条件。</condition_help>
             <columns_input>列</columns_input>

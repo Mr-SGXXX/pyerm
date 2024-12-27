@@ -178,15 +178,15 @@
         <select_setting>
             <title>### Select Experiment Settings</title>
             <select_task_title>**Select Task**</select_task_title>
-            <select_task_select>'Task:</select_task_select>
+            <select_task_select>Task:</select_task_select>
             <select_method_title>**Select Method**</select_method_title>
-            <select_method_select>'Method:</select_method_select>
+            <select_method_select>Method:</select_method_select>
             <select_data_title>**Select Data**</select_data_title>
-            <select_data_select>'Dataset:</select_data_select>
+            <select_data_select>Dataset:</select_data_select>
             
             <method_id_select>Method Setting:</method_id_select>
             <method_index>Current Setting</method_index>
-            <remark_method_checkbox>Remark this method setting</remark_method_checkbox>
+            <remark_method_checkbox>Remark this method parameter setting</remark_method_checkbox>
             <remark_method_input>Set or change a remark name for current method setting. _Empty means delete remark name._</remark_method_input>
             <remark_method_button>Confirm</remark_method_button>
             <remark_method_failed_repeat>Error: Remark name already exists, please choose another one.</remark_method_failed_repeat>
@@ -195,7 +195,7 @@
         
             <data_id_select>Data Setting:</data_id_select>
             <data_index>Current Setting</data_index>
-            <remark_data_checkbox>Remark this data setting</remark_data_checkbox>
+            <remark_data_checkbox>Remark this data parameter setting</remark_data_checkbox>
             <remark_data_input>Set or change a remark name for current data setting. _Empty means delete remark name._</remark_data_input>
             <remark_data_button>Confirm</remark_data_button>
             <remark_data_failed_repeat>Error: Remark name already exists, please choose another one.</remark_data_failed_repeat>
@@ -219,23 +219,69 @@
         </select_setting>
 
         <show_images>
-            
+            <experiment_select>Select an experiment to show images:</experiment_select>
+            <experiment_no_remark_text>No experiment of current setting remarked.</experiment_no_remark_text>
+            <experiment_img_select>Select an image to show:</experiment_img_select>
+            <experiment_img_download_button>Download {SELECTED_IMG}</experiment_img_download_button>
+            <experiment_img_not_exist>No image detected for experiment {SELECTED_ID}</experiment_img_not_exist>
         </show_images>
 
         <single_setting_analysis>
-
+            <statistics_title>### Statistics Results</statistics_title>
+            <statistics_notice>_**Notice**: The statistics are calculated based on the **{NUM_RECORDS}** same setting experiments._</statistics_notice>
+            <statistics_no_result_found>No results found for this setting.</statistics_no_result_found>
+            <statistics_chart_title>### Statistical Chart of Score Metrics of current setting</statistics_chart_title>
+            <statistics_chart_select>Select Chart Type:</statistics_chart_select>
+            <remarked_experiment_img_title>### Remarked Experiment Images</remarked_experiment_img_title>
+            <remarked_experiment_img_notice>**Notice:**_The following images are generated during the experiment._</remarked_experiment_img_notice>
+            <remarked_experiment_not_found>No experiment of current setting remarked.</remarked_experiment_not_found>
+            <delete_all_cur_setting_title>## Delete All Current Setting Experiments</delete_all_cur_setting_title>
+            <delete_all_cur_setting_warn>**Warning**: This operation will delete all experiments of current setting, which is irreversible.</delete_all_cur_setting_warn>
+            <delete_all_cur_setting_checkbox>Delete All Same Setting Experiments</delete_all_cur_setting_checkbox>
+            <delete_all_cur_setting_confirm_button>Confirm</delete_all_cur_setting_confirm_button>
         </single_setting_analysis>
 
         <multi_setting_analysis>
-
+            <sidebar_cur_task_title>## Current Task: </sidebar_cur_task_title>
+            <sidebar_clear_all_recorded_settins_button>Clear All Recorded Settings</sidebar_clear_all_recorded_settins_button>
+            <sidebar_recorded_setting_title>### Recorded Settings:</sidebar_recorded_setting_title>
+            <sidebar_recorded_setting_text>**Select the settings to analyze.**</sidebar_recorded_setting_text>
+            <sidebar_recorded_setting_notice>**Notice:**_The order you select will be the order of the statistics._</sidebar_recorded_setting_notice>
+            <sidebar_recorded_setting_select>Select settings to analyze:</sidebar_recorded_setting_select>
+            <sidebar_metric_select>Select a metric to analyze:</sidebar_metric_select>
+            <statistics_results_title>### Statistics Results on {SELECTED_METRIC}</statistics_results_title>
+            <statistics_score_metrics_title>### Statistical Chart of Score Metrics of selected settings on {SELECTED_METRIC}</statistics_score_metrics_title>
+            <statistics_chart_type_select>Select Chart Type:</statistics_chart_type_select>
+            <no_setting_selected_text>No setting selected.</no_setting_selected_text>
         </multi_setting_analysis>
 
         <single_setting_plot>
-
+            <value_type_select>Select Value Type Used in the Chart:</value_type_select>
+            <customize_checkbox>Customize {PLOT_TYPE}</customize_checkbox>
+            <customize_figure_x_input>Figure Size X:</customize_figure_x_input>
+            <customize_figure_y_input>Figure Size Y:</customize_figure_y_input>
+            <customize_title_input>{PLOT_TYPE} Title:</customize_title_input>
+            <customize_x_label_input>X Label:</customize_x_label_input>
+            <customize_y_label_input>Y Label:</customize_y_label_input>
+            <customize_additional_param_input>Additional Parameters(E,g: hue=A, color=B):</customize_additional_param_input>
+            <sidebar_metric_select_title>### Select Metrics to show in the plot</sidebar_metric_select_title>
+            <sidebar_metric_select>Metrics:</sidebar_metric_select>
+            <sidebar_metric_select_empty_text>No metrics selected.</sidebar_metric_select_empty_text>
+            <figure_download_button>Download {PLOT_TYPE} Image</figure_download_button>
         </single_setting_plot>
 
         <multi_setting_plot>
-
+            <value_type_select>Select Value Type Used in the Chart:</value_type_select>
+            <customize_checkbox>Customize {PLOT_TYPE}</customize_checkbox>
+            <customize_figure_x_input>Figure Size X:</customize_figure_x_input>
+            <customize_figure_y_input>Figure Size Y:</customize_figure_y_input>
+            <customize_title_input>{PLOT_TYPE} Title:</customize_title_input>
+            <customize_x_label_input>X Label:</customize_x_label_input>
+            <customize_y_label_input>Y Label:</customize_y_label_input>
+            <customize_col_name_input>Column Names (splited by comma ","): </customize_col_name_input>
+            <customize_col_name_mismatch_text>Error: Column names count should be equal to selected settings count.</customize_col_name_mismatch_text>
+            <customize_additional_param_input>Additional Parameters(E,g: hue=A, color=B):</customize_additional_param_input>
+            <figure_download_button>Download {PLOT_TYPE} Image</figure_download_button>
         </multi_setting_plot>
 
 

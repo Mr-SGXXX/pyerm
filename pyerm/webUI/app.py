@@ -31,12 +31,14 @@ from record import record
 from tables import tables
 from details import details
 from analysis import analysis
+import warnings
 
 from pyerm.webUI import PYERM_HOME
 from pyerm.webUI.utils import LanguageManager
 
 
 def init():
+    warnings.filterwarnings("ignore", category=UserWarning)
     config = configparser.ConfigParser()
     if not os.path.exists(PYERM_HOME):
         os.makedirs(PYERM_HOME)

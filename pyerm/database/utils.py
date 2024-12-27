@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.2
+# Version: 0.3.3
 
 from time import time
 import pandas as pd
@@ -153,11 +153,15 @@ def experiment_id2remark_name(db, experiment_id):
 def method_id2remark_name(db, method, method_id):
     if f'method_{method}' not in db.table_names and f'method_{method}' not in db.view_names:
         return f"{method_id}"
+    if not (isinstance(method_id, int) and method_id > 0):
+        return f"{method_id}"
     remark_name = db[f'method_{method}'].select('remark', where=f'method_id={method_id}')[0][0]
     return remark_name if remark_name else f"{method_id}"
 
 def data_id2remark_name(db, data, data_id):
     if f'data_{data}' not in db.table_names and f'data_{data}' not in db.view_names:
+        return f"{data_id}"
+    if not (isinstance(data_id, int) and data_id > 0):
         return f"{data_id}"
     remark_name = db[f'data_{data}'].select('remark', where=f'data_id={data_id}')[0][0]
     return remark_name if remark_name else f"{data_id}"
@@ -166,6 +170,8 @@ def experiment_remark_name2id(db, remark_name):
     try:
         return db['experiment_list'].select('id', where=f'remark="{remark_name}"')[0][0]
     except:
+        if remark_name.isnumeric():
+            return int(remark_name)
         return -1
     
 def method_remark_name2id(db, method, remark_name):
@@ -174,6 +180,8 @@ def method_remark_name2id(db, method, remark_name):
     try:
         return db[f'method_{method}'].select('method_id', where=f'remark="{remark_name}"')[0][0]
     except:
+        if remark_name.isnumeric():
+            return int(remark_name)
         return -1
 
 def data_remark_name2id(db, data, remark_name):
@@ -182,5 +190,7 @@ def data_remark_name2id(db, data, remark_name):
     try:
         return db[f'data_{data}'].select('data_id', where=f'remark="{remark_name}"')[0][0]
     except:
+        if remark_name.isnumeric():
+            return int(remark_name)
         return -1
     
