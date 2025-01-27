@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.2
+# Version: 0.3.4
 
 import streamlit as st
 import os
@@ -114,6 +114,7 @@ def load_db():
         db_path = upload_db()
     if st.button(st.session_state.lm["home.load_db.change_database_button"]):
         st.session_state.db_path = db_path
+        st.session_state.zip = None
         st.rerun()
     st.write(st.session_state.lm["home.load_db.current_path_text"].format(DB_PATH=st.session_state.db_path))
     if os.path.exists(db_path) and db_path.endswith('.db'):

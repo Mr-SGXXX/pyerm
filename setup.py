@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.3
+# Version: 0.3.4
 from setuptools import setup, find_packages
 
 with open("README.md", "r", encoding="utf-8") as f:
@@ -28,7 +28,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name='pyerm',
-    version='0.3.3',
+    version='0.3.4',
     author='Yuxuan Shao',
     author_email='yx_shao@qq.com',
     description='This project is an local experiment record manager for python based on SQLite DMS, suitable for recording experiment and analysing experiment data with a web UI, which can help you efficiently save your experiment settings and results for later analysis.',
@@ -42,6 +42,11 @@ setup(
     ],
     packages=find_packages(),
     include_package_data=True,
+    package_data={
+        'pyerm': [
+            "webUI/language_data/*.xml"
+        ]
+    },
     entry_points={
         'console_scripts': [
             'pyerm_export_zip=pyerm.scripts.export_data:main',
