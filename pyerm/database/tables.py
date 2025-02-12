@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.2
+# Version: 0.3.5
 
 from PIL import Image
 from io import BytesIO
@@ -55,30 +55,43 @@ class ExperimentTable(Table):
         }
         super().__init__(db, "experiment_list", columns)
 
-    def experiment_start(self, description:str, method:str, method_id:int, data:str, data_id, task:str, start_time:float=None, tags:str=None, experimenters:str=None) -> int:
+    def experiment_start(self, description:str, method:str, method_id:int, data:str, data_id, task:str, start_time:float=None, tags:str=None, experimenters:str=None, remark:str=None) -> int:
         if start_time is None:
             start_time = time()
-        start_time = localtime(start_time)
-        start_time = strftime("%Y-%m-%d %H:%M:%S", start_time)
-        return super().insert(description=description, method=method, method_id=method_id, data=data, data_id=data_id, task=task, tags=tags, experimenters=experimenters, start_time=strftime(start_time), status='running')
+        elif start_time == "":
+            start_time = None
+        else:
+            start_time = localtime(start_time)
+            start_time = strftime("%Y-%m-%d %H:%M:%S", start_time)
+        return super().insert(description=description, method=method, method_id=method_id,
+                                data=data, data_id=data_id, task=task, tags=tags, experimenters=experimenters,
+                                start_time=strftime(start_time) if start_time is not None else None, status='running', remark=remark)
 
     def experiment_over(self, experiment_id:int, end_time:float=None, useful_time_cost:float=None) -> None:
         if end_time is None:
             end_time = time()
-        end_time = localtime(end_time)
-        end_time = strftime("%Y-%m-%d %H:%M:%S", end_time)
-        super().update(f"id={experiment_id}", end_time=strftime(end_time), useful_time_cost=useful_time_cost, status='finished')
+        elif end_time == "":
+            end_time = None
+        else:
+            end_time = localtime(end_time)
+            end_time = strftime("%Y-%m-%d %H:%M:%S", end_time)
+        super().update(f"id={experiment_id}", end_time=strftime(end_time) if end_time is not None else None,
+                         useful_time_cost=useful_time_cost, status='finished')
 
     def experiment_failed(self, experiment_id:int, error_info:str=None, end_time:float=None) -> None:
         if end_time is None:
             end_time = time()
-        end_time = localtime(end_time)
-        end_time = strftime("%Y-%m-%d %H:%M:%S", end_time)
+        elif end_time == "":
+            end_time = None
+        else:
+            end_time = localtime(end_time)
+            end_time = strftime("%Y-%m-%d %H:%M:%S", end_time)
         # print(error_info)
         if error_info is None:
             error_info = traceback.format_exc()
             # print(error_info)
-        super().update(f"id={experiment_id}", end_time=strftime(end_time), status='failed', failed_reason=error_info)
+        super().update(f"id={experiment_id}", end_time=strftime(end_time) if end_time is not None else None,
+                         status='failed', failed_reason=error_info)
 
     def get_experiment(self, experiment_id:int) -> dict:
         return super().select(where=f"id={experiment_id}")[0]
@@ -108,6 +121,7 @@ class DataTable(Table):
                 def_str = value2def(kwargs[key])
                 self.add_column(key, def_str)
                 self.update(**{key: 'NULL'})
+        remark = kwargs.pop('remark', None)
         condition = ' AND '.join([f'{k.replace(" ", "_")}=?' for k in kwargs.keys()])
         values = list(kwargs.values())
 
@@ -118,6 +132,8 @@ class DataTable(Table):
         if id_list == []:
             return super().insert(**kwargs)
         else:
+            if remark is not None:
+                self.update(f"data_id={id_list[0][0]}", remark=remark)
             return id_list[0][0] 
 
 
@@ -142,6 +158,7 @@ class MethodTable(Table):
             if key not in self.columns:
                 self.add_column(key, value2def(kwargs[key]))
                 self.update(**{key: 'NULL'})
+        remark = kwargs.pop('remark', None)
         condition = ' AND '.join([f'{k.replace(" ", "_")}=?' for k in kwargs.keys()])
         values = list(kwargs.values())
 
@@ -151,6 +168,8 @@ class MethodTable(Table):
         if id_list == []:
             return super().insert(**kwargs)
         else:
+            if remark is not None:
+                self.update(f"method_id={id_list[0][0]}", remark=remark)
             return id_list[0][0] 
 
 def image_def(i):

@@ -5,3 +5,4 @@ __pycache__
 *.DS_Store
 .vscode
 *.baiduyun.*
+examples/experiments.db

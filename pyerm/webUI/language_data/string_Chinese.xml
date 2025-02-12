@@ -19,11 +19,12 @@
             <repo>**GitHub仓库**: [{REPO_URL}]({REPO_URL})</repo>
             <pypi>**PyPI**: [PyERM](https://pypi.org/project/pyerm/)</pypi>
             <license>**许可证**: [MIT](https://opensource.org/licenses/MIT)</license>
-            <author>**作者**: 邵雨轩</author>
+            <author>**作者**: [Yuxuan Shao](https://github.com/Mr-SGXXX)</author>
             <description>**描述**:</description>
             <description1>PyERM是一个用于管理和可视化实验记录的 Python 包。</description1>
             <description2>这是PyERM的网页用户界面。</description2>
-            <disclaimer>**免责声明**：此版本已经过全面测试且能稳定运行，但可能仍存在漏洞。</disclaimer>
+            <disclaimer>**免责声明**：此版本已经过作者个人一定程度的测试且能稳定运行，但可能仍存在漏洞。</disclaimer>
+            <notice>**注意:** _PyERM基于SQLite数据库_</notice>
         </title>
 
         <change_language>
@@ -35,7 +36,6 @@
 
         <load_db>
             <title>## 加载数据库</title>
-            <title_notice>**注意:** _PyERM基于SQLite数据库_</title_notice>
             <database_select>选择实验记录数据库文件</database_select>
             <new_remote_database_checkbox>设置新数据库文件路径</new_remote_database_checkbox>    
             <new_remote_database_input>新数据库文件绝对路径</new_remote_database_input>
@@ -78,6 +78,7 @@
         <delete_failed_records_warning>**警告: 此操作将删除所有失败的记录及其结果，无法撤销。**</delete_failed_records_warning>
         <delete_failed_records_notice>_**注意**: 运行超过24小时且仍未结束的实验将被视为卡住并删除。_</delete_failed_records_notice>
         <delete_failed_records_confirm_button>确认</delete_failed_records_confirm_button>
+        <delete_failed_records_success>成功删除失败和卡住的实验记录。</delete_failed_records_success>
 
         <export_data_title>### 导出实验数据</export_data_title>
         <export_data_notice>您可以使用以下选项导出实验数据:</export_data_notice>
@@ -91,7 +92,138 @@
 
     <record>
         <title>手动记录</title>
-        <manually_record_title>## 手动记录实验数据</manually_record_title>
+
+        <task_select>
+            <title>## 任务选择</title>
+            <task_select>现有备选任务:</task_select>
+            <add_new_task_checkbox>添加新任务</add_new_task_checkbox>
+            <add_new_task_input>新任务名称</add_new_task_input>
+            <task_ok>确定</task_ok>
+        </task_select>
+
+        <method_select>
+            <title>## 方法选择</title>
+            <method_select>现有备选方法:</method_select>
+            <add_new_method_checkbox>添加新方法</add_new_method_checkbox>
+            <add_new_method_input>新方法名称</add_new_method_input>
+            <method_ok>确定</method_ok>
+        </method_select>
+
+        <set_method_param>
+            <title>## 方法参数设置</title>
+            <param_table_found>已找到方法参数表</param_table_found>
+            <cur_param_select>选择现有参数设置</cur_param_select>
+            <param_table_row_name>参数</param_table_row_name>
+            <add_new_param_checkbox>添加新参数设置</add_new_param_checkbox>
+            <add_new_param_notice>**注意**: 请确保参数名称唯一</add_new_param_notice>
+            <new_param_num>新参数数量</new_param_num>
+            <new_param_name_input>新参数{PARAM_INDEX}名称</new_param_name_input>
+            <new_param_type_input>新参数{PARAM_INDEX}数据类型</new_param_type_input>
+            <new_param_name_repeat_error>错误：参数名称重复，请选择其他名称。</new_param_name_repeat_error>
+            <table_edit_hint>**提示：您可以在表格中修改参数值**</table_edit_hint>
+            <remark_param_checkbox>备注此参数设置</remark_param_checkbox>
+            <remark_param_notice>设置当前参数设置的备注名称。**注意：若相同配置已存在备注名称，此操作将对其更改。**</remark_param_notice>
+            <remark_param_input>备注名称</remark_param_input>
+            <param_ok>确认</param_ok>
+            <param_table_not_found>未找到方法参数表</param_table_not_found>
+            <create_new_param_table>创建新方法参数表</create_new_param_table>
+        </set_method_param>
+
+        <data_select>
+            <title>## 数据选择</title>
+            <data_select>现有备选数据:</data_select>
+            <add_new_data_checkbox>添加新数据</add_new_data_checkbox>
+            <add_new_data_input>新数据名称</add_new_data_input>
+            <data_ok>确定</data_ok>
+        </data_select>
+
+        <set_data_param>
+            <title>## 数据参数设置</title>
+            <param_table_found>已找到数据参数表</param_table_found>
+            <cur_param_select>选择现有参数设置</cur_param_select>
+            <param_table_row_name>参数</param_table_row_name>
+            <add_new_param_checkbox>添加新参数设置</add_new_param_checkbox>
+            <add_new_param_notice>**注意**: 请确保参数名称唯一</add_new_param_notice>
+            <new_param_num>新参数数量</new_param_num>
+            <new_param_name_input>新参数{PARAM_INDEX}名称</new_param_name_input>
+            <new_param_type_input>新参数{PARAM_INDEX}数据类型</new_param_type_input>
+            <new_param_name_repeat_error>错误：参数名称重复，请选择其他名称。</new_param_name_repeat_error>
+            <table_edit_hint>**提示：您可以在表格中修改参数值**</table_edit_hint>
+            <remark_param_checkbox>备注此参数设置</remark_param_checkbox>
+            <remark_param_notice>设置当前参数设置的备注名称。**注意：若相同配置已存在备注名称，此操作将对其更改。**</remark_param_notice>
+            <remark_param_input>备注名称</remark_param_input>
+            <param_ok>确认</param_ok>
+            <param_table_not_found>未找到数据参数表</param_table_not_found>
+            <create_new_param_table>创建新数据参数表</create_new_param_table>
+        </set_data_param>
+
+        <set_experiment_info>
+            <title>## 实验信息设置</title>
+            <experiment_description_input>实验描述</experiment_description_input>
+            <experiment_tags_input>实验标签</experiment_tags_input>
+            <experimenters_input>实验人员</experimenters_input>
+            <start_date_input>实验开始日期</start_date_input>
+            <end_date_input>实验结束日期</end_date_input>
+            <start_time_input>实验开始时间</start_time_input>
+            <end_time_input>实验结束时间</end_time_input>
+            <useful_time_input>实验有效时长(s)</useful_time_input>
+            <status_select>实验状态*</status_select>
+            <failed_reason_input>失败原因</failed_reason_input>
+            <add_remark_checkbox>备注此实验</add_remark_checkbox>
+            <add_remark_input>备注名称</add_remark_input>
+            <experiment_ok>确认</experiment_ok>
+        </set_experiment_info>
+
+        <show_experiment_info>
+            <description1>当前实验{REMARK}使用方法**{METHOD}**和数据**{DATA}**处理任务**{TASK}**，</description1>
+            <description2>该任务由**{EXPERIMENTERS}**等人执行。</description2>
+            <description3>开始于 **{START_TIME}**。</description3>
+            <description4>结束于 **{END_TIME}**。</description4>
+            <description5>有效时长为 **{USEFUL_TIME_COST:.2f}s**。</description5>
+            <failed_text>实验失败，原因如下：</failed_text>
+            <finished_text>实验成功完成。</finished_text>
+            <experiment_desc>_实验描述_：**{DESCRIPTION}**</experiment_desc>
+            <experimenters>_实验人员_：**{EXPERIMENTERS}**</experimenters>
+            <experiment_tags>_实验标签_：**{TAGS}**</experiment_tags>
+        </show_experiment_info>
+
+        <set_experiment_result>
+            <title>## 记录实验结果</title>
+            <init_score_name_input>初始评估指标名称</init_score_name_input>
+            <score_table_row_name>评估指标</score_table_row_name>
+            <score_table_title>### 评估指标</score_table_title>
+            <add_new_score_checkbox>添加新的评估指标</add_new_score_checkbox>
+            <add_new_score_notice>**注意**: 请确保评估指标名称唯一，且当前指标只支持数值类型。</add_new_score_notice>
+            <new_score_num>新评估指标数量</new_score_num>
+            <new_score_name_input>新评估指标{SCORE_INDEX}名称</new_score_name_input>
+            <new_score_name_repeat_error>错误：评估指标名称重复，请选择其他名称。</new_score_name_repeat_error>
+            <result_ok>确认</result_ok>
+            <add_img_title>### 添加实验结果图像</add_img_title>
+            <img_uploader>上传实验结果图片</img_uploader>
+        </set_experiment_result>
+
+        <show_experiment_result>
+            <sidebar_scores_title>## 实验评估指标</sidebar_scores_title>
+            <sidebar_imgs_title>## 实验结果图像</sidebar_imgs_title>
+            <sidebar_img_select>选择图像</sidebar_img_select>
+        </show_experiment_result>
+
+        <sidebar_title>## 手动记录实验</sidebar_title>
+        <sidebar_task>任务：</sidebar_task>
+        <sidebar_method>方法：</sidebar_method>
+        <sidebar_data>数据：</sidebar_data>
+        <not_setted>**未设置**</not_setted>
+        <sidebar_method_title>### 方法参数：</sidebar_method_title>
+        <sidebar_data_title>### 数据参数：</sidebar_data_title>
+        <sidebar_experiment_info_title>### 实验信息：</sidebar_experiment_info_title>
+        <sidebar_experiment_result_title>### 实验结果：</sidebar_experiment_result_title>
+        <add_experiment_button>添加实验</add_experiment_button>
+        <need_full_info>请填写实验信息</need_full_info>
+        <need_result_info>请填写实验结果</need_result_info>
+        <status_over>完成</status_over>
+        <status_failed>失败</status_failed>
+        <add_experiment_success>实验记录添加成功</add_experiment_success>
+        <add_experiment_failed>实验记录添加失败：</add_experiment_failed>
     </record>
 
     <details>
@@ -101,15 +233,17 @@
             <task>#### 任务: **{TASK}**</task>
             <method>#### 方法: **{METHOD}**</method>
             <data>#### 数据: **{DATA}**</data>
-            <desp_part1>任务**{TASK}**的实验**ID:{ID}**使用方法**{METHOD}**和数据**{DATA}**，</desp_part1>
-            <desp_part2>该任务由**{EXPERIMENTERS}**等人执行，</desp_part2>
+            <desp_part1>任务**{TASK}**的实验 **(ID:{ID})** 使用方法 **{METHOD}** 和数据 **{DATA}**，</desp_part1>
+            <desp_part2>该任务由**{EXPERIMENTERS}**等人执行。</desp_part2>
             <desp_part3>开始于 **{START_TIME}**。</desp_part3>
             <desp_part4>结束于 **{END_TIME}**。</desp_part4>
             <failed_text>**实验失败**，原因如下：</failed_text>
-            <finished_text1> **实验成功完成**，总耗时**{TOTAL_TIME_COST:.2f}s**</finished_text1>
+            <finished_text> **实验成功完成**</finished_text>
+            <finished_text1>，总耗时**{TOTAL_TIME_COST:.2f}s**</finished_text1>
             <finished_text2>，其中有效耗时 **{USEFUL_TIME_COST:.2f}s**。</finished_text2>
             <finished_text3>。</finished_text3>
-            <running_text>**实验仍在进行中**，当前耗时**{TIME_COST:.2f}s**。</running_text>
+            <running_text1>**实验仍在进行中**，当前耗时**{TIME_COST:.2f}s**。</running_text1>
+            <running_text2>**实验仍在进行中**。</running_text2>
             <desp>_实验描述_: **{DESCRIPTION}**</desp>
             <experimenters>_实验人员_: **{EXPERIMENTERS}**</experimenters> 
             <tags>_标签_: **{TAGS}**</tags>

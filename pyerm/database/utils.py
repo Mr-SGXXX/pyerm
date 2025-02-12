@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.3
+# Version: 0.3.5
 
 from time import time
 import pandas as pd
@@ -36,7 +36,7 @@ def auto_detect_def(param_dict:typing.Dict[str, typing.Any]) -> typing.Dict[str,
     param_def_dict = {}
     for k, v in param_dict.items():
         param_def_dict[k] = value2def(v)
-        if param_def_dict[k] == 'TEXT':
+        if param_def_dict[k] == 'TEXT' and v is not None:
             try:
                 param_dict[k] = str(v)
             except:

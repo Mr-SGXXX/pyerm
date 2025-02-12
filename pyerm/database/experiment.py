@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.2
+# Version: 0.3.5
 
 import os
 import typing
@@ -92,7 +92,7 @@ class Experiment:
         self._method_id = None
         self._task = None
 
-    def experiment_start(self, description:str=None, start_time:float=None, tags:typing.Union[typing.List[str], str]=None, experimenters:typing.Union[typing.List[str], str]=None) -> int:
+    def experiment_start(self, description:str=None, start_time:float=None, tags:typing.Union[typing.List[str], str]=None, experimenters:typing.Union[typing.List[str], str]=None, remark:str=None) -> int:
         """
         Start an experiment, and record the experiment information in the database
         
@@ -105,11 +105,13 @@ class Experiment:
         description : str, optional
             The description of the experiment, by default None, which means the description is empty
         start_time : float, optional
-            The start time of the experiment, by default None, which means the current time
+            The start timestamp of the experiment, by default None, which means the current time, "" means the start time is empty
         tags : str, optional
             The tags of the experiment, by default None
         experimenters : str, optional
             The experimenters of the experiment, by default None
+        remark : str, optional
+            The remark of the experiment, by default None, can't be positive int number
 
         Returns
         -------
@@ -124,11 +126,12 @@ class Experiment:
         assert self._data is not None, 'Data not initialized, run data_init() first'
         assert self._method is not None, 'Method not initialized, run method_init() first'
         assert self._task is not None, 'Task not initialized, run task_init() first'
+        assert remark is None or not remark.isdigit(), 'Remark cannot be positive int number'
         if tags is not None and isinstance(tags, typing.List):
             tags = ','.join(tags)
         if experimenters is not None and isinstance(experimenters, typing.List):
             experimenters = ','.join(experimenters)
-        self._id = self.experiment_table.experiment_start(description, self._method, self._method_id, self._data, self._data_id, self._task, start_time, tags, experimenters)
+        self._id = self.experiment_table.experiment_start(description, self._method, self._method_id, self._data, self._data_id, self._task, start_time, tags, experimenters, remark)
         self.run_times += 1
         sys.excepthook = handle_exception
         return self._id
@@ -149,7 +152,7 @@ class Experiment:
         image_dict : typing.Dict[str, typing.Union[Image.Image, str, bytearray, bytes]], optional
             The image dictionary, contains the image data of the experiment, such as {'image1': Image.open('1.png'), 'image2': '2.png'}, by default no image
         end_time : float, optional
-            The end time of the experiment, by default None, which means the current time
+            The end timestamp of the experiment, by default None, which means the current time, "" means the end time is empty
         useful_time_cost : float, optional
             The useful time cost of the experiment, by default None, used to record the user-defined time cost
 
@@ -181,7 +184,7 @@ class Experiment:
             The error information of the experiment
 
         end_time : float, optional
-            The end time of the experiment, by default None, which means the current time
+            The end time of the experiment, by default None, which means the current time, "" means the end time is empty
 
         """
         assert self._id is not None, 'Experiment not started, run experiment_start() first'
@@ -214,7 +217,7 @@ class Experiment:
             self.detail_table = DetailTable(self._db, self._id, detail_def_dict)
         self.detail_table.insert(experiment_id=self._id, **detail_dict)
 
-    def data_init(self, data_name:str, param_dict:typing.Dict[str, typing.Any]=None, param_def_dict:typing.Dict[str, str]=None):
+    def data_init(self, data_name:str, param_dict:typing.Dict[str, typing.Any]={}, param_def_dict:typing.Dict[str, str]=None, remark:str=None):
         """
         Initialize the data table, and insert the data information into the database, such as the dataset preproessing parameters, etc.
         
@@ -225,31 +228,36 @@ class Experiment:
         data_name : str
             The name of the data table, such as 'data'
         param_dict : typing.Dict[str, typing.Any], optional
-            The parameter dictionary, contains the data information, by default None
+            The parameter dictionary, contains the data information, by default empty dict
         param_def_dict : typing.Dict[str, str], optional
             The parameter definition dictionary, contains the data parameter definition, by default None, which means the parameter definition will be automatically detected
-        
+        remark : str, optional
+            The remark of the data setting, by default None, can't be positive int number
+            
         Returns
         -------
         int
             The data ID
 
         """
-        assert " " not in data_name, 'Data name cannot contain space'
+        # assert " " not in data_name, 'Data name cannot contain space'
         assert param_def_dict is None or len(param_def_dict) == len(param_dict), 'Parameter definition and parameter dict length mismatch'
+        assert remark is None or not remark.isdigit(), 'Remark cannot be positive int number'
+        data_name = data_name.replace(' ', '_')
         self._data = data_name
         param_dict = deepcopy(param_dict)
         if len(param_dict) == 0:
             self._data_id = -1
             print(f"No parameter for table data_{data_name}, table creating canceled")
             return
+        param_dict['remark'] = remark
         if param_def_dict is None:
             param_def_dict = auto_detect_def(param_dict)
         self.data_table = DataTable(self._db, data_name, param_def_dict)
         self._data_id = self.data_table.insert(**param_dict)
         return self._data_id
     
-    def method_init(self, method_name:str, param_dict:typing.Dict[str, typing.Any]=None, param_def_dict:typing.Dict[str, str]=None, detail_def_dict:typing.Dict[str, str]=None):
+    def method_init(self, method_name:str, param_dict:typing.Dict[str, typing.Any]={}, param_def_dict:typing.Dict[str, str]=None, detail_def_dict:typing.Dict[str, str]=None, remark:str=None) -> int:
         """
         Initialize the method table, and insert the method information into the database, such as the method parameters, etc.
 
@@ -260,18 +268,24 @@ class Experiment:
         method_name : str
             The name of the method table, such as 'method'
         param_dict : typing.Dict[str, typing.Any], optional
-            The parameter dictionary, contains the method information, by default None
+            The parameter dictionary, contains the method information, by default empty dict
         param_def_dict : typing.Dict[str, str], optional
             The parameter definition dictionary, contains the method parameter definition, by default None, which means the parameter definition will be automatically detected
-
+        detail_def_dict : typing.Dict[str, str], optional
+            The detail definition dictionary, contains the detail parameter definition, by default None
+        remark : str, optional
+            The remark of the method setting, by default None, can't be positive int number
+            
         Returns
         -------
         int
             The method ID
 
         """
-        assert " " not in method_name, 'Method name cannot contain space'
+        # assert " " not in method_name, 'Method name cannot contain space'
         assert param_def_dict is None or len(param_def_dict) == len(param_dict), 'Parameter definition and parameter dict length mismatch'
+        assert remark is None or not remark.isdigit(), 'Remark cannot be positive int number'
+        method_name = method_name.replace(' ', '_')
         self._method = method_name
         param_dict = deepcopy(param_dict)
         if detail_def_dict is not None:
@@ -280,6 +294,7 @@ class Experiment:
             self._method_id = -1
             print(f"No parameter for table method_{method_name}, table creating canceled")
             return
+        param_dict['remark'] = remark
         if param_def_dict is None:
             param_def_dict = auto_detect_def(param_dict)
         self.method_table = MethodTable(self._db, method_name, param_def_dict)
@@ -301,7 +316,8 @@ class Experiment:
             The result definition dictionary, contains the result parameter definition, by default None, which means the parameter definition will be automatically detected when the result is recorded
 
         """
-        assert " " not in task_name, 'Task name cannot contain space'
+        # assert " " not in task_name, 'Task name cannot contain space'
+        task_name = task_name.replace(' ', '_')
         self._task = task_name
         if rst_def_dict is not None:
             self.rst_table = ResultTable(self._db, task_name, rst_def_dict)

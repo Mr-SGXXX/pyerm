@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.4
+# Version: 0.3.5
 
 import streamlit as st
 import os
@@ -41,7 +41,6 @@ REPO_URL = "https://github.com/Mr-SGXXX/pyerm"
 def home():
     title()
     st.write("---")
-    
 
     cols = st.columns(2)
     with cols[0]:
@@ -58,7 +57,8 @@ def home():
                     db = Database(st.session_state.db_path, output_info=False)
                     delete_failed_experiments(db)
                     st.session_state.cur_detail_id = None
-                    st.rerun()
+                    st.success(st.session_state.lm["home.delete_failed_records_success"])
+
             st.write("---")
             st.markdown(st.session_state.lm["home.export_data_title"])
             st.write(st.session_state.lm["home.export_data_notice"])
@@ -74,7 +74,8 @@ def home():
     change_language()
     st.write("---")
     clean_cache()
-    if st.sidebar.button(st.session_state.lm["app.refresh"], key='refresh'):
+    st.sidebar.write("---")
+    if st.sidebar.button(st.session_state.lm["app.refresh"], key='refresh', use_container_width=True):
         st.rerun()
 
 
@@ -89,6 +90,7 @@ def title():
     st.markdown(st.session_state.lm["home.title.description1"])
     st.markdown(st.session_state.lm["home.title.description2"])
     st.markdown(st.session_state.lm["home.title.disclaimer"])
+    st.markdown(st.session_state.lm["home.title.notice"])
 
 def change_language():
     st.markdown(st.session_state.lm["home.change_language.title"])
@@ -101,7 +103,6 @@ def change_language():
 
 def load_db():
     st.markdown(st.session_state.lm["home.load_db.title"])
-    st.markdown(st.session_state.lm["home.load_db.title_notice"])
     db_path = st.selectbox(st.session_state.lm["home.load_db.database_select"], st.session_state.db_path_list, index=st.session_state.db_path_list.index(st.session_state.db_path) if st.session_state.db_path in st.session_state.db_path_list else 0)
     if db_path is None:
         db_path = st.session_state.db_path
@@ -173,8 +174,7 @@ def delete_useless_figures():
                 result_table.update(where=f"experiment_id={id}", **{f'image_{i}': None for i in range(result_table.max_image_index + 1)})
             db.conn.execute("VACUUM")
             db.conn.commit()
-            st.write(st.session_state.lm["home.delete_useless_figures.delete_figures_success_text"])
-            st.rerun()
+            st.success(st.session_state.lm["home.delete_useless_figures.delete_figures_success_text"])
             
     
 def upload_db():
@@ -200,8 +200,8 @@ def clean_cache():
         if st.button(st.session_state.lm["home.clean_cache.clean_cache_confirm_button"], key='clean_cache'):
             st.session_state.db_path_list = []
             shutil.rmtree(PYERM_HOME)
-            st.write(st.session_state.lm["home.clean_cache.clean_cache_success_text"])
-            st.rerun()
+            st.success(st.session_state.lm["home.clean_cache.clean_cache_success_text"])
+
 
 def build_tree_string(path, level=0):
     items = sorted(os.listdir(path))

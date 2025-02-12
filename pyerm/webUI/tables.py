@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.3
+# Version: 0.3.5
 
 import pandas as pd
 from PIL import Image
@@ -50,7 +50,8 @@ def tables():
             if No_SQL_flag:
                 st.session_state.sql = None
         select_tables()
-    if st.sidebar.button(st.session_state.lm["app.refresh"], key='refresh'):
+    st.sidebar.write("---")
+    if st.sidebar.button(st.session_state.lm["app.refresh"], key='refresh', use_container_width=True):
         st.rerun()
 
 def detect_tables():
@@ -77,13 +78,14 @@ def select_tables():
         try:
             if "SELECT" not in st.session_state.sql.upper():
                 db.conn.execute(st.session_state.sql)
+                db.conn.commit()
                 st.session_state.sql = None
                 st.rerun()
             else:
                 df = pd.read_sql_query(st.session_state.sql, db.conn)
-                st.write(st.session_state.lm["table.select_tables."].format(SQL=st.session_state.sql))
+                st.write(st.session_state.lm["table.select_tables.used_sql"].format(SQL=st.session_state.sql))
         except Exception as e:
-            st.write(st.session_state.lm["table.select_tables."].format(SQL=st.session_state.sql))
+            st.write(st.session_state.lm["table.select_tables.used_sql"].format(SQL=st.session_state.sql))
             st.write(st.session_state.lm["table.select_tables.sql_error"])
             st.code(e)
             st.session_state.sql = None
@@ -116,7 +118,7 @@ def show_table(df, columns_keep):
         if 'failed_reason' in df.columns:
             st.write(df.to_html(escape=False, columns=columns_keep), unsafe_allow_html=True)
         else:
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df, use_container_width=True, hide_index=True)
     else:
         cur_table_part = st.sidebar.number_input(st.session_state.lm["table.show_table.sidebar_part_input"], value=1, min_value=1, max_value=(total_counts-1) // st.session_state.single_table_part_max_records + 1)
         cur_table_part -= 1
@@ -124,7 +126,7 @@ def show_table(df, columns_keep):
         if 'failed_reason' in df.columns:
             st.write(df.to_html(escape=False, columns=columns_keep), unsafe_allow_html=True)
         else:
-            st.dataframe(df, use_container_width=True, height=500)
+            st.dataframe(df, use_container_width=True, hide_index=True, height=500)
     if st.sidebar.checkbox(st.session_state.lm["table.show_table.sidebar_set_max_checkbox"], False):
         single_table_part_max_records = st.sidebar.number_input(st.session_state.lm["table.show_table.sidebar_set_max_input"], value=st.session_state.single_table_part_max_records, min_value=1, step=10)
         if st.sidebar.button(st.session_state.lm["table.show_table.sidebar_set_max_confirm_button"], key='confirm_single_table_part_max_records'):
@@ -150,7 +152,8 @@ def input_full_sql():
     sql = st.sidebar.text_area('SQL', value=None, height=200)
     if st.sidebar.button(st.session_state.lm["table.input_full_sql.run_button"], key='run_full_sql'):
         st.session_state.sql = sql
-        st.session_state.table_name = st.session_state.lm["table.input_full_sql.table_name"]
+        if sql is not None:
+            st.session_state.table_name = st.session_state.lm["table.input_full_sql.table_name"]
 
 def download_table_as_csv(df):
     csv = df.to_csv(index=False)

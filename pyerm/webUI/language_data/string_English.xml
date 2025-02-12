@@ -19,11 +19,12 @@
             <repo>**GitHub Repository**: [{REPO_URL}]({REPO_URL})</repo>
             <pypi>**PyPI**: [PyERM](https://pypi.org/project/pyerm/)</pypi>
             <license>**License**: [MIT](https://opensource.org/licenses/MIT)</license>
-            <author>**Author**: Yuxuan Shao</author>
+            <author>**Author**: [Yuxuan Shao](https://github.com/Mr-SGXXX)</author>
             <description>**Description**:</description>
             <description1>PyERM is a Python package for managing and visualizing experiment records.</description1>
             <description2>This is the web user interface of the PyERM.</description2>
-            <disclaimer>**Disclaimer**: This version has been fully tested and is stable, though bugs may exist.</disclaimer>
+            <disclaimer>**Disclaimer**: This version has undergone a certain level of personal testing by the author and is stable to run, but vulnerabilities may still exist.</disclaimer>
+            <notice>**Notice:** _PyERM is based on SQLite database_</notice>
         </title>
 
         <change_language>
@@ -35,7 +36,6 @@
 
         <load_db>
             <title>## Load Database</title>
-            <title_notice>**Notice:** _PyERM is based on SQLite database_</title_notice>
             <database_select>Select Recorded Database File</database_select>
             <new_remote_database_checkbox>Add a new database file by path</new_remote_database_checkbox>    
             <new_remote_database_input>New Database Absolute Path</new_remote_database_input>
@@ -78,6 +78,7 @@
         <delete_failed_records_warning>**Warning: This operation will delete all failed records and their results, which cannot be undone.**</delete_failed_records_warning>
         <delete_failed_records_notice>_**Notice**: Experiments that have been running for more than 24 hours and is still running will also be seen as stucked and deleted._</delete_failed_records_notice>
         <delete_failed_records_confirm_button>Confirm</delete_failed_records_confirm_button>
+        <delete_failed_records_success>Failed and stuck records deleted successfully.</delete_failed_records_success>
 
         <export_data_title>### Export Experiment Data</export_data_title>
         <export_data_notice>You can export the experiment data by using the following options:</export_data_notice>
@@ -91,7 +92,138 @@
 
     <record>
         <title>Recording Manually</title>
-        <manually_record_title>## Manually Record the Experiment Data</manually_record_title>
+
+        <task_select>
+            <title>## Task Selection</title>
+            <task_select>Available tasks:</task_select>
+            <add_new_task_checkbox>Add new task</add_new_task_checkbox>
+            <add_new_task_input>New task name</add_new_task_input>
+            <task_ok>Confirm</task_ok>
+        </task_select>
+
+        <method_select>
+            <title>## Method Selection</title>
+            <method_select>Available methods:</method_select>
+            <add_new_method_checkbox>Add new method</add_new_method_checkbox>
+            <add_new_method_input>New method name</add_new_method_input>
+            <method_ok>Confirm</method_ok>
+        </method_select>
+
+        <set_method_param>
+            <title>## Method Parameter Setting</title>
+            <param_table_found>Method parameter table found</param_table_found>
+            <cur_param_select>Select existing parameter settings</cur_param_select>
+            <param_table_row_name>Parameter</param_table_row_name>
+            <add_new_param_checkbox>Add new parameter settings</add_new_param_checkbox>
+            <add_new_param_notice>**Notice**: Please ensure parameter names are unique</add_new_param_notice>
+            <new_param_num>Number of new parameters</new_param_num>
+            <new_param_num_name_input>New parameter {PARAM_INDEX} name</new_param_num_name_input>
+            <new_param_num_type_input>New parameter {PARAM_INDEX} data type</new_param_num_type_input>
+            <new_param_name_repeat_error>Error: Parameter name already exists, please choose another name.</new_param_name_repeat_error>
+            <table_edit_hint>**Hint: You can modify parameter values in the table**</table_edit_hint>
+            <remark_param_checkbox>Remark this parameter setting</remark_param_checkbox>
+            <remark_param_notice>Set a remark name for current parameter setting. **Notice: If the same configuration already has a remark name, this operation will change it.**</remark_param_notice>
+            <remark_param_input>Remark name</remark_param_input>
+            <param_ok>Confirm</param_ok>
+            <param_table_not_found>Method parameter table not found</param_table_not_found>
+            <create_new_param_table>Create new method parameter table</create_new_param_table>
+        </set_method_param>
+
+        <data_select>
+            <title>## Data Selection</title>
+            <data_select>Available data:</data_select>
+            <add_new_data_checkbox>Add new data</add_new_data_checkbox>
+            <add_new_data_input>New data name</add_new_data_input>
+            <data_ok>Confirm</data_ok>
+        </data_select>
+
+        <set_data_param>
+            <title>## Data Parameter Setting</title>
+            <param_table_found>Data parameter table found</param_table_found>
+            <cur_param_select>Select existing parameter settings</cur_param_select>
+            <param_table_row_name>Parameter</param_table_row_name>
+            <add_new_param_checkbox>Add new parameter settings</add_new_param_checkbox>
+            <add_new_param_notice>**Notice**: Please ensure parameter names are unique</add_new_param_notice>
+            <new_param_num>Number of new parameters</new_param_num>
+            <new_param_num_name_input>New parameter {PARAM_INDEX} name</new_param_num_name_input>
+            <new_param_num_type_input>New parameter {PARAM_INDEX} data type</new_param_num_type_input>
+            <new_param_name_repeat_error>Error: Parameter name already exists, please choose another name.</new_param_name_repeat_error>
+            <table_edit_hint>**Hint: You can modify parameter values in the table**</table_edit_hint>
+            <remark_param_checkbox>Remark this parameter setting</remark_param_checkbox>
+            <remark_param_notice>Set a remark name for current parameter setting. **Notice: If the same configuration already has a remark name, this operation will change it.**</remark_param_notice>
+            <remark_param_input>Remark name</remark_param_input>
+            <param_ok>Confirm</param_ok>
+            <param_table_not_found>Data parameter table not found</param_table_not_found>
+            <create_new_param_table>Create new data parameter table</create_new_param_table>
+        </set_data_param>
+
+        <set_experiment_info>
+            <title>## Experiment Information Setting</title>
+            <experiment_description_input>Experiment Description</experiment_description_input>
+            <experiment_tags_input>Experiment Tags</experiment_tags_input>
+            <experimenters_input>Experimenters</experimenters_input>
+            <start_date_input>Start Date</start_date_input>
+            <end_date_input>End Date</end_date_input>
+            <start_time_input>Start Time</start_time_input>
+            <end_time_input>End Time</end_time_input>
+            <useful_time_input>Useful Time Cost(s)</useful_time_input>
+            <status_select>Status*</status_select>
+            <failed_reason_input>Failed Reason</failed_reason_input>
+            <add_remark_checkbox>Remark This Experiment</add_remark_checkbox>
+            <add_remark_input>Remark Name</add_remark_input>
+            <experiment_ok>Confirm</experiment_ok>
+        </set_experiment_info>
+
+        <show_experiment_info>
+            <description1>Current experiment{REMARK} uses method **{METHOD}** and data **{DATA}** to process task **{TASK}**,</description1>
+            <description2>which is conducted by **{EXPERIMENTERS}**.</description2>
+            <description3>Started at **{START_TIME}**.</description3>
+            <description4>Ended at **{END_TIME}**.</description4>
+            <description5>Useful time cost is **{USEFUL_TIME_COST:.2f}s**.</description5>
+            <failed_text>Experiment failed due to:</failed_text>
+            <finished_text>Experiment finished successfully.</finished_text>
+            <experiment_desc>_Experiment Description_: **{DESCRIPTION}**</experiment_desc>
+            <experimenters>_Experimenters_: **{EXPERIMENTERS}**</experimenters>
+            <experiment_tags>_Experiment Tags_: **{TAGS}**</experiment_tags>
+        </show_experiment_info>
+
+        <set_experiment_result>
+            <title>## Record Experiment Result</title>
+            <init_score_name_input>Initial Score Metric Name</init_score_name_input>
+            <score_table_row_name>Score Metric</score_table_row_name>
+            <score_table_title>### Score Metrics</score_table_title>
+            <add_new_score_checkbox>Add New Score Metrics</add_new_score_checkbox>
+            <add_new_score_notice>**Notice**: Please ensure score metric names are unique and only numeric types are supported.</add_new_score_notice>
+            <new_score_num>Number of New Score Metrics</new_score_num>
+            <new_score_name_input>New Score Metric {SCORE_INDEX} Name</new_score_name_input>
+            <new_score_name_repeat_error>Error: Score metric name already exists, please choose another name.</new_score_name_repeat_error>
+            <result_ok>Confirm</result_ok>
+            <add_img_title>### Add Experiment Result Images</add_img_title>
+            <img_uploader>Upload Experiment Result Images</img_uploader>
+        </set_experiment_result>
+
+        <show_experiment_result>
+            <sidebar_scores_title>## Experiment Score Metrics</sidebar_scores_title>
+            <sidebar_imgs_title>## Experiment Result Images</sidebar_imgs_title>
+            <sidebar_img_select>Select Image</sidebar_img_select>
+        </show_experiment_result>
+
+        <sidebar_title>## Manual Recording</sidebar_title>
+        <sidebar_task>Task:</sidebar_task>
+        <sidebar_method>Method:</sidebar_method>
+        <sidebar_data>Data:</sidebar_data>
+        <not_setted>**Not Set**</not_setted>
+        <sidebar_method_title>### Method Parameters:</sidebar_method_title>
+        <sidebar_data_title>### Data Parameters:</sidebar_data_title>
+        <sidebar_experiment_info_title>### Experiment Information:</sidebar_experiment_info_title>
+        <sidebar_experiment_result_title>### Experiment Results:</sidebar_experiment_result_title>
+        <add_experiment_button>Add Experiment</add_experiment_button>
+        <need_full_info>Please fill in experiment information</need_full_info>
+        <need_result_info>Please fill in experiment results</need_result_info>
+        <status_over>Finished</status_over>
+        <status_failed>Failed</status_failed>
+        <add_experiment_success>Experiment record added successfully</add_experiment_success>
+        <add_experiment_failed>Failed to add experiment record:</add_experiment_failed>
     </record>
 
     <details>
@@ -101,15 +233,17 @@
             <task>#### Task: **{TASK}**</task>
             <method>#### Method: **{METHOD}**</method>
             <data>#### Data: **{DATA}**</data>
-            <desp_part1>Experiment **ID:{ID}** of task **{TASK}** with method **{METHOD}** and data **{DATA}**</desp_part1>
+            <desp_part1>Experiment **(ID:{ID})** of task **{TASK}** with method **{METHOD}** and data **{DATA}**</desp_part1>
             <desp_part2> conducted by **{EXPERIMENTERS}**</desp_part2>
             <desp_part3> started at **{START_TIME}**</desp_part3>
             <desp_part4> and ended at **{END_TIME}**.</desp_part4>
             <failed_text>**It failed** due to the following reasons: </failed_text>
-            <finished_text1> **It finished successfully** with **total time cost: {TOTAL_TIME_COST:.2f}s**"</finished_text1>
+            <finished_text> **It finished successfully**</finished_text>
+            <finished_text1> with **total time cost: {TOTAL_TIME_COST:.2f}s**"</finished_text1>
             <finished_text2> and **useful time cost: {USEFUL_TIME_COST:.2f}s**.</finished_text2>
             <finished_text3>.</finished_text3>
-            <running_text>**It is still running**, current time cost is **{TIME_COST:.2f}s**.</running_text>
+            <running_text1>**It is still running**, current time cost is **{TIME_COST:.2f}s**.</running_text1>
+            <running_text2>**It is still running**.</running_text2>
             <desp>_Experimnt Description_: **{DESCRIPTION}**</desp>
             <experimenters>_Experimenters_: **{EXPERIMENTERS}**</experimenters> 
             <tags>_Tags_: **{TAGS}**</tags>

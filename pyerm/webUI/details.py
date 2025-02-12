@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.3
+# Version: 0.3.5
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -169,7 +169,8 @@ def details():
             if st.checkbox(st.session_state.lm["details.experiment_delete_checkbox"], value=False):
                 if st.button(st.session_state.lm["details.experiment_delete_confirm_button"]):
                     delete_current_experiment(db)
-    if st.sidebar.button(st.session_state.lm["app.refresh"], key='refresh'):
+    st.sidebar.write("---")
+    if st.sidebar.button(st.session_state.lm["app.refresh"], key='refresh', use_container_width=True):
         st.rerun()
 
 def basic_information(basic_info:pd.DataFrame):
@@ -201,12 +202,16 @@ def basic_information(basic_info:pd.DataFrame):
         st.write(st.session_state.lm["details.basic_information.failed_text"])
         st.code(f"{failed_reason}")
     elif status == 'finished':
-        st.write(st.session_state.lm["details.basic_information.finished_text1"].format(TOTAL_TIME_COST=total_time_cost) + 
-                 st.session_state.lm["details.basic_information.finished_text2"].format(USEFUL_TIME_COST=useful_time_cost) if useful_time_cost else 
-                 st.session_state.lm["details.basic_information.finished_text3"])
+        st.write(st.session_state.lm["details.basic_information.finished_text"] + (
+                st.session_state.lm["details.basic_information.finished_text1"].format(TOTAL_TIME_COST=total_time_cost) if total_time_cost is not None else "") + 
+                (st.session_state.lm["details.basic_information.finished_text2"].format(USEFUL_TIME_COST=useful_time_cost) if useful_time_cost else 
+                st.session_state.lm["details.basic_information.finished_text3"]))
     else:
-        time_cost = time() - datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S").timestamp()
-        st.write(st.session_state.lm["details.basic_information.running_text"].format(TIME_COST=time_cost))
+        if start_time:
+            time_cost = time() - datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S").timestamp()
+            st.write(st.session_state.lm["details.basic_information.running_text1"].format(TIME_COST=time_cost))
+        else:
+            st.write(st.session_state.lm["details.basic_information.running_text2"])
     st.write('')
     if description:
         st.write(st.session_state.lm["details.basic_information.desp"].format(DESCRIPTION=description))
@@ -252,14 +257,15 @@ def detect_experiment_info(db):
     experiment_table = db['experiment_list']
     basic_info = experiment_table.select(where=f'id={st.session_state.cur_detail_id}')
     basic_columns = experiment_table.columns
-    method = basic_info[0][2]
-    method_id = basic_info[0][3]
+    basic_info = pd.DataFrame(basic_info, columns=basic_columns)
+    method = basic_info['method'][0]
+    method_id = basic_info['method_id'][0]
     method_info = None
-    data = basic_info[0][4]
-    data_id = basic_info[0][5]
+    data = basic_info['data'][0]
+    data_id = basic_info['data_id'][0]
     data_info = None
     result_info = None
-    task = basic_info[0][6]
+    task = basic_info['task'][0]
     if method_id != -1:
         method_table = db[f'method_{method}']
         method_info = method_table.select(where=f'method_id={method_id}')
@@ -270,12 +276,12 @@ def detect_experiment_info(db):
         data_info = data_table.select(where=f'data_id={data_id}')
         data_columns = data_table.columns
         data_info = pd.DataFrame(data_info, columns=data_columns)
-    if basic_info[0][13] == 'finished':
+    if basic_info['status'][0] == 'finished':
         result_table = db[f'result_{task}']
         result_info = result_table.select(where=f'experiment_id={st.session_state.cur_detail_id}')
         result_columns = result_table.columns
         result_info = pd.DataFrame(result_info, columns=result_columns)
-    basic_info = pd.DataFrame(basic_info, columns=basic_columns)
+    
     return basic_info, method_info, data_info, result_info
 
 def remark_cur_experiment(db):
@@ -298,16 +304,17 @@ def remark_cur_experiment(db):
             st.rerun()
         
         if st.session_state.error_flag:
-            st.write(st.session_state.lm["details.remark_cur_experiment.remark_cur_experiment_failed_repeat"])
+            st.error(st.session_state.lm["details.remark_cur_experiment.remark_cur_experiment_failed_repeat"])
             st.session_state.error_flag = False
         
         if st.session_state.error_flag1:
-            st.write(st.session_state.lm["details.remark_cur_experiment.remark_cur_experiment_failed_number"])
+            st.error(st.session_state.lm["details.remark_cur_experiment.remark_cur_experiment_failed_number"])
             st.session_state.error_flag1 = False
 
 def delete_current_experiment(db):
     experiment_table = db['experiment_list']
-    task = experiment_table.select(where=f'id={st.session_state.cur_detail_id}')[0][6]
+    task = experiment_table.select("task", where=f'id={st.session_state.cur_detail_id}')[0][0]
+
     experiment_table.delete(f'id={st.session_state.cur_detail_id}')
     result_table = db[f'result_{task}']
     result_table.delete(f'experiment_id={st.session_state.cur_detail_id}')

@@ -20,13 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.3
+# Version: 0.3.5
 
 import sqlite3
 import re
 
 class Database:
-    def __init__(self, db_path:str, output_info=True) -> None:
+    def __init__(self, db_path:str, output_info=False) -> None:
         self.db_path = db_path
         self.info = output_info
         self.conn = sqlite3.connect(db_path)
@@ -56,7 +56,10 @@ class Database:
         return len(self.table_names)
     
     def __del__(self):
-        self.cursor.close()
+        try:
+            self.cursor.close()
+        except:
+            pass
         self.conn.close()
     
     def get_table(self, table_name:str):

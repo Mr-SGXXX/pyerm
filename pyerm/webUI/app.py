@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.2
+# Version: 0.3.5
 
 import streamlit as st
 import os
@@ -32,6 +32,7 @@ from tables import tables
 from details import details
 from analysis import analysis
 import warnings
+import datetime
 
 from pyerm.webUI import PYERM_HOME
 from pyerm.webUI.utils import LanguageManager
@@ -50,15 +51,18 @@ def init():
     if 'db_path' not in st.session_state:
         db_path_list = config.get('DEFAULT', 'db_path', fallback=os.path.join(PYERM_HOME, 'experiment.db'))
         st.session_state.db_path_list = db_path_list.split(',')
-        st.session_state.db_path = st.session_state.db_path_list[0]
+        last_db_path_index = int(config.get('DEFAULT', 'last_db_path_index', fallback=0))
+        st.session_state.db_path = st.session_state.db_path_list[last_db_path_index]
     else:
         db_path_list = config.get('DEFAULT', 'db_path', fallback=os.path.join(PYERM_HOME, 'experiment.db'))
         db_path_list = db_path_list.split(',')
         db_path_list = [db_path for db_path in db_path_list if os.path.exists(db_path)]
         if st.session_state.db_path not in db_path_list and os.path.exists(st.session_state.db_path):
             db_path_list.append(st.session_state.db_path)
+        last_db_path_index = db_path_list.index(st.session_state.db_path)
         st.session_state.db_path_list = db_path_list
         config.set('DEFAULT', 'db_path', ','.join(db_path_list))
+        config.set('DEFAULT', 'last_db_path_index', str(last_db_path_index))
     if 'lm' not in st.session_state:
         st.session_state.lm = LanguageManager(config.get('DEFAULT', 'language', fallback='English'))
     else:
@@ -69,6 +73,22 @@ def init():
         st.session_state.sql = None
     if 'zip' not in st.session_state:
         st.session_state.zip = None
+    if 'record_task' not in st.session_state:
+        st.session_state.record_task = None
+    if 'record_method' not in st.session_state:
+        st.session_state.record_method = None
+    if 'record_method_params' not in st.session_state:
+        st.session_state.record_method_params = None
+    if 'record_data' not in st.session_state:
+        st.session_state.record_data = None
+    if 'record_data_params' not in st.session_state:
+        st.session_state.record_data_params = None
+    if 'record_experiment_info' not in st.session_state:
+        st.session_state.record_experiment_info = None
+    if 'record_result_scores' not in st.session_state:
+        st.session_state.record_result_scores = None
+    if 'record_result_imgs' not in st.session_state:
+        st.session_state.record_result_imgs = {}
     if 'last_version' not in st.session_state:
         st.session_state.last_version = None
     if 'selected_row' not in st.session_state:
@@ -97,6 +117,34 @@ def init():
 def main():
     init()
     st.set_page_config(page_title="PyERM WebUI", page_icon="📊", layout="wide", initial_sidebar_state="auto")
+    hide_menu_style = R"""
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        </style>
+        """
+    st.markdown(hide_menu_style, unsafe_allow_html=True)
+
+    # 自定义底部版权信息
+    footer_style = """
+        <style>
+        .custom-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white; 
+            color: #555; 
+            text-align: center;
+            padding: 5px;
+            font-size: 14px;
+        }
+        </style>
+    """
+
+    st.markdown(footer_style, unsafe_allow_html=True)
+    st.markdown(f'<div class="custom-footer">© 2024-{datetime.datetime.now().year} Yuxuan Shao | <a href="https://opensource.org/licenses/MIT">MIT License</a></div>', unsafe_allow_html=True)
     st.sidebar.title("PyERM WebUI")
     st.sidebar.markdown(st.session_state.lm["app.sidebar_page_select"])
     

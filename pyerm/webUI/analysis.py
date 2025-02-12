@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.3
+# Version: 0.3.5
 
 import pandas as pd
 import streamlit as st
@@ -59,7 +59,8 @@ def analysis():
             st.write('---')
             multi_setting_analysis(db)
             
-    if st.sidebar.button(st.session_state.lm["app.refresh"], key='refresh'):
+    st.sidebar.write("---")
+    if st.sidebar.button(st.session_state.lm["app.refresh"], key='refresh', use_container_width=True):
         st.rerun()
             
 def single_setting_analysis(db, task, method, method_id, dataset, dataset_id):
@@ -186,7 +187,7 @@ def select_setting(db):
             #     st.write(f'_Remark Name_: **{method_remark_name}**')
             st.dataframe(method_info.astype(str).transpose(), use_container_width=True, height=150)
             if st.checkbox(st.session_state.lm["analysis.select_setting.remark_method_checkbox"], key='remark_method'):
-                remark = st.text_input(st.session_state.lm["analysis.select_setting.remark_method_input"], key='remark_input')
+                remark = st.text_input(st.session_state.lm["analysis.select_setting.remark_method_input"], key='remark_method_input')
                 if remark.isnumeric():
                     st.session_state.error_flag1 = True
                 if remark == '':
@@ -199,10 +200,10 @@ def select_setting(db):
                         st.session_state.error_flag = True
                     st.rerun()
                 if st.session_state.error_flag:
-                    st.write(st.session_state.lm["analysis.select_setting.remark_method_failed_repeat"])
+                    st.error(st.session_state.lm["analysis.select_setting.remark_method_failed_repeat"])
                     st.session_state.error_flag = False
                 if st.session_state.error_flag1:
-                    st.write(st.session_state.lm["analysis.select_setting.remark_method_failed_number"])
+                    st.error(st.session_state.lm["analysis.select_setting.remark_method_failed_number"])
                     st.session_state.error_flag1 = False
         else:
             st.write(st.session_state.lm["analysis.select_setting.method_no_param"])
@@ -226,7 +227,7 @@ def select_setting(db):
             st.dataframe(data_info.astype(str).transpose(), use_container_width=True, height=150)
             
             if st.checkbox(st.session_state.lm["analysis.select_setting.remark_data_checkbox"], key='remark_data'):
-                remark = st.text_input(st.session_state.lm["analysis.select_setting.remark_data_input"], key='remark_input')
+                remark = st.text_input(st.session_state.lm["analysis.select_setting.remark_data_input"], key='remark_data_input')
                 if remark.isnumeric():
                     st.session_state.error_flag1 = True
                 if remark == '':
@@ -239,10 +240,10 @@ def select_setting(db):
                         st.session_state.error_flag = True
                     st.rerun()
                 if st.session_state.error_flag:
-                    st.write(st.session_state.lm["analysis.select_setting.remark_data_failed_repeat"])
+                    st.error(st.session_state.lm["analysis.select_setting.remark_data_failed_repeat"])
                     st.session_state.error_flag = False
                 if st.session_state.error_flag1:
-                    st.write(st.session_state.lm["analysis.select_setting.remark_data_failed_number"])
+                    st.error(st.session_state.lm["analysis.select_setting.remark_data_failed_number"])
                     st.session_state.error_flag1 = False
         else:
             st.write(st.session_state.lm["analysis.select_setting.data_no_param"])
@@ -429,7 +430,7 @@ def multi_setting_plot(db, task, selected_settings, selected_metric, plot_type):
         if not col_name_list == '':
             col_names = col_name_list.split(',')
             if not len(col_names) == len(selected_settings):
-                st.write(st.session_state.lm["analysis.multi_setting_plot.customize_col_name_mismatch_text"])
+                st.error(st.session_state.lm["analysis.multi_setting_plot.customize_col_name_mismatch_text"])
                 return
     else:
         title = ''
@@ -527,4 +528,4 @@ def auto_remark_single_setting(db, task, method, method_id, dataset, dataset_id,
                                             remark=f'{former_remark}_{score_column}_max')
         db.conn.commit()
     else:
-        st.write(st.session_state.lm["analysis.select_setting.auto_remark_single_setting_failed_text"])
+        st.error(st.session_state.lm["analysis.select_setting.auto_remark_single_setting_failed_text"])
