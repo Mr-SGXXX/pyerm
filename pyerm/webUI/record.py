@@ -40,12 +40,15 @@ from pyerm.webUI import PYERM_HOME
 
 def record():
     title()
-    if os.path.exists(st.session_state.db_path) and st.session_state.db_path.endswith('.db'):
-        db = Database(st.session_state.db_path, output_info=False)
+    if st.session_state.db_path.endswith('.db'):
+        if os.path.exists(st.session_state.db_path):
+            db = Database(st.session_state.db_path, output_info=False)
+        else:
+            db = None
         cols = st.columns(3)
         with cols[0]:
             # task select
-            task_select(db)
+            task_select(db=db)
         
         with cols[1]:
             # method select
@@ -76,13 +79,19 @@ def record():
         st.sidebar.write(st.session_state.lm["record.sidebar_data"], st.session_state.record_data if st.session_state.record_data else st.session_state.lm["record.not_setted"])
         st.sidebar.write(st.session_state.lm["record.sidebar_method_title"])
         if st.session_state.record_method_params is not None:
-            st.sidebar.dataframe(st.session_state.record_method_params, use_container_width=True)
+            if st.session_state.record_method_params is not -1:
+                st.sidebar.dataframe(st.session_state.record_method_params, use_container_width=True)
+            else:
+                st.sidebar.write(st.session_state.lm["record.no_setting"])
         else:
             st.sidebar.write(st.session_state.lm["record.not_setted"])
 
         st.sidebar.write(st.session_state.lm["record.sidebar_data_title"])
         if st.session_state.record_data_params is not None:
-            st.sidebar.dataframe(st.session_state.record_data_params, use_container_width=True)
+            if st.session_state.record_data_params is not -1:
+                st.sidebar.dataframe(st.session_state.record_data_params, use_container_width=True)
+            else:
+                st.sidebar.write(st.session_state.lm["record.no_setting"])
         else:
             st.sidebar.write(st.session_state.lm["record.not_setted"])
 
@@ -111,8 +120,16 @@ def record():
                 exp = Experiment(st.session_state.db_path)
                 try:
                     exp.task_init(st.session_state.record_task)
-                    exp.method_init(st.session_state.record_method, st.session_state.record_method_params.to_dict(orient='records')[0], remark=method_remark)
-                    exp.data_init(st.session_state.record_data, st.session_state.record_data_params.to_dict(orient='records')[0], remark=data_remark)
+                    if st.session_state.record_method_params != -1:
+                        method_param_dict = st.session_state.record_method_params.to_dict(orient='records')[0]
+                    else:
+                        method_param_dict = {}
+                    exp.method_init(st.session_state.record_method, method_param_dict, remark=method_remark)
+                    if st.session_state.record_data_params != -1:
+                        data_param_dict = st.session_state.record_data_params.to_dict(orient='records')[0]
+                    else:
+                        data_param_dict = {}
+                    exp.data_init(st.session_state.record_data, data_param_dict, remark=data_remark)
                     end_time = st.session_state.record_experiment_info.pop("end_time")
                     status = st.session_state.record_experiment_info.pop("status")
                     failed_reason = st.session_state.record_experiment_info.pop("failed_reason")
@@ -137,28 +154,42 @@ def record():
         st.rerun()
         
 def task_select(db: Database):
+    task = None
     st.write(st.session_state.lm["record.task_select.title"])
-    tasks = pd.read_sql_query("SELECT DISTINCT task FROM experiment_list", db.conn)
-    task = st.selectbox(st.session_state.lm["record.task_select.task_select"], tasks)
+    try:
+        tasks = pd.read_sql_query("SELECT DISTINCT task FROM experiment_list", db.conn)
+        task = st.selectbox(st.session_state.lm["record.task_select.task_select"], tasks)
+    except Exception as e:
+        st.write(st.session_state.lm["record.task_select.task_empty"])
     if st.checkbox(st.session_state.lm["record.task_select.add_new_task_checkbox"]):
         task = st.text_input(st.session_state.lm["record.task_select.add_new_task_input"], key="new_task")
     if st.button(st.session_state.lm["record.task_select.task_ok"], key="task_ok"):
-        st.session_state.record_task = task
+        if task is None:
+            st.error(st.session_state.lm["record.task_select.task_empty_error"])
+        else:
+            st.session_state.record_task = task
 
 def method_select(db: Database, task: str):
+    method = None
     st.write(st.session_state.lm["record.method_select.title"])
-    methods = pd.read_sql_query(f"SELECT DISTINCT method FROM experiment_list WHERE task = '{task}'", db.conn)
-    method = st.selectbox(st.session_state.lm["record.method_select.method_select"], methods)
+    try:
+        methods = pd.read_sql_query(f"SELECT DISTINCT method FROM experiment_list WHERE task = '{task}'", db.conn)
+        method = st.selectbox(st.session_state.lm["record.method_select.method_select"], methods)
+    except Exception as e:
+        st.write(st.session_state.lm["record.method_select.method_empty"])
     if st.checkbox(st.session_state.lm["record.method_select.add_new_method_checkbox"]):
         method = st.text_input(st.session_state.lm["record.method_select.add_new_method_input"], key="new_method")
     if st.button(st.session_state.lm["record.method_select.method_ok"], key="method_ok"):
-        st.session_state.record_method = method
+        if method is None:
+            st.error(st.session_state.lm["record.method_select.method_empty_error"])
+        else:
+            st.session_state.record_method = method
 
 def set_method_param(db: Database, method: str):
     remark = None 
     st.write(st.session_state.lm["record.set_method_param.title"])
     table_name = f"method_{method}"
-    if table_name in db.table_names:
+    if db is not None and table_name in db.table_names:
         st.write(st.session_state.lm["record.set_method_param.param_table_found"])
         cur_method_params = pd.read_sql_query(f"SELECT * FROM {table_name}", db.conn)
         remarks = [method_id2remark_name(db, method, method_id) for method_id in cur_method_params["method_id"]]
@@ -187,6 +218,7 @@ def set_method_param(db: Database, method: str):
         if st.button(st.session_state.lm["record.set_method_param.param_ok"], key="param_method_ok"):
             st.session_state.record_method_params = params
     else:
+        params = -1
         st.write(st.session_state.lm["record.set_method_param.param_table_not_found"])
         if st.checkbox(st.session_state.lm["record.set_method_param.create_new_param_table"]):
             st.write(st.session_state.lm["record.set_method_param.add_new_param_notice"])
@@ -206,25 +238,32 @@ def set_method_param(db: Database, method: str):
                 st.write(st.session_state.lm["record.set_method_param.remark_param_notice"])
                 remark = st.text_input(st.session_state.lm["record.set_method_param.remark_param_input"], key="remark_method_param_input")
                 params.index = [remark]
-            if st.button(st.session_state.lm["record.set_method_param.param_ok"], key="param_method_ok"):
-                st.session_state.record_method_params = params
+        if st.button(st.session_state.lm["record.set_method_param.param_ok"], key="param_method_ok"):
+            st.session_state.record_method_params = params
 
     return remark
 
 def data_select(db: Database, task: str):
+    data = None
     st.write(st.session_state.lm["record.data_select.title"])
-    datas = pd.read_sql_query(f"SELECT DISTINCT data FROM experiment_list WHERE task = '{task}'", db.conn)
-    data = st.selectbox(st.session_state.lm["record.data_select.data_select"], datas)
+    try:
+        datas = pd.read_sql_query(f"SELECT DISTINCT data FROM experiment_list WHERE task = '{task}'", db.conn)
+        data = st.selectbox(st.session_state.lm["record.data_select.data_select"], datas)
+    except Exception as e:
+        st.write(st.session_state.lm["record.data_select.data_empty"])
     if st.checkbox(st.session_state.lm["record.data_select.add_new_data_checkbox"]):
         data = st.text_input(st.session_state.lm["record.data_select.add_new_data_input"], key="new_data")
     if st.button(st.session_state.lm["record.data_select.data_ok"], key="data_ok"):
-        st.session_state.record_data = data
+        if data is None:
+            st.error(st.session_state.lm["record.data_select.data_empty_error"])
+        else:
+            st.session_state.record_data = data
 
 def set_data_param(db: Database, data: str):
     remark = None 
     st.write(st.session_state.lm["record.set_data_param.title"])
     table_name = f"data_{data}"
-    if table_name in db.table_names:
+    if db is not None and table_name in db.table_names:
         st.write(st.session_state.lm["record.set_data_param.param_table_found"])
         cur_data_params = pd.read_sql_query(f"SELECT * FROM {table_name}", db.conn)
         remarks = [data_id2remark_name(db, data, data_id) for data_id in cur_data_params["data_id"]]
@@ -252,6 +291,7 @@ def set_data_param(db: Database, data: str):
         if st.button(st.session_state.lm["record.set_data_param.param_ok"], key="param_data_ok"):
             st.session_state.record_data_params = params
     else:
+        params = -1
         st.write(st.session_state.lm["record.set_data_param.param_table_not_found"])
         if st.checkbox(st.session_state.lm["record.set_data_param.create_new_param_table"]):
             st.write(st.session_state.lm["record.set_data_param.add_new_param_notice"])
@@ -270,8 +310,8 @@ def set_data_param(db: Database, data: str):
                 st.write(st.session_state.lm["record.set_data_param.remark_param_notice"])
                 remark = st.text_input(st.session_state.lm["record.set_data_param.remark_param_input"], key="remark_data_param_input")
                 params.index = [remark]
-            if st.button(st.session_state.lm["record.set_data_param.param_ok"], key="param_data_ok"):
-                st.session_state.record_data_params = params
+        if st.button(st.session_state.lm["record.set_data_param.param_ok"], key="param_data_ok"):
+            st.session_state.record_data_params = params
     
     return remark
 
@@ -339,7 +379,7 @@ def show_experiment_info():
 def set_experiment_result(db:Database, task):
     st.write(st.session_state.lm["record.set_experiment_result.title"])
     task_table_name = f"result_{task}"
-    if task_table_name not in db.table_names:
+    if db is None or task_table_name not in db.table_names:
         init_score_name = st.text_input(st.session_state.lm["record.set_experiment_result.init_score_name_input"], key="init_score_name", value="score_0")
         score = pd.DataFrame(columns=[init_score_name])
         score_columns = score.columns
@@ -348,7 +388,7 @@ def set_experiment_result(db:Database, task):
         score_columns = [col for col in result_table.columns if not col.startswith("image_") and not col == "experiment_id"]
         score = pd.DataFrame(columns=score_columns)
     for col in score_columns:
-        score[col] = [None]
+        score[col] = [0]
     score.index = [st.session_state.lm["record.set_experiment_result.score_table_row_name"]]
     cols = st.columns(2)
     with cols[0]:
@@ -361,7 +401,7 @@ def set_experiment_result(db:Database, task):
                 if new_score in score.columns:
                     st.error(st.session_state.lm["record.set_experiment_result.new_score_name_repeat_error"])
                     break
-                score = pd.concat([score, pd.DataFrame({new_score: [None]}, index=[st.session_state.lm["record.set_experiment_result.score_table_row_name"]])], axis=1)
+                score = pd.concat([score, pd.DataFrame({new_score: [0]}, index=[st.session_state.lm["record.set_experiment_result.score_table_row_name"]])], axis=1)
         score = st.data_editor(score, use_container_width=True)
         for col in score.columns:
             score[col] = score[col].astype(float)

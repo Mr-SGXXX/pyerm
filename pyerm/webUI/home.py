@@ -113,16 +113,17 @@ def load_db():
         st.write(st.session_state.lm["home.load_db.upload_database_notice1"])
         st.write(st.session_state.lm["home.load_db.upload_database_notice2"])
         db_path = upload_db()
-    if st.button(st.session_state.lm["home.load_db.change_database_button"]):
-        st.session_state.db_path = db_path
-        st.session_state.zip = None
-        st.rerun()
-    st.write(st.session_state.lm["home.load_db.current_path_text"].format(DB_PATH=st.session_state.db_path))
     if os.path.exists(db_path) and db_path.endswith('.db'):
         st.write(st.session_state.lm["home.load_db.load_success_text1"])
         st.write(st.session_state.lm["home.load_db.load_success_text2"].format(FORMAT_SIZE=format_size(os.path.getsize(db_path))))
     else:
         st.write(st.session_state.lm["home.load_db.load_failed_text"])
+    if st.button(st.session_state.lm["home.load_db.change_database_button"]):
+        st.session_state.db_path = db_path
+        st.session_state.zip = None
+        st.rerun()
+    st.write(st.session_state.lm["home.load_db.current_path_text"].format(DB_PATH=st.session_state.db_path))
+    
 
 def export_data():
     output_dir_path = f"{PYERM_HOME}/.tmp"

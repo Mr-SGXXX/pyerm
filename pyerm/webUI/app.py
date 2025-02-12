@@ -57,7 +57,7 @@ def init():
         db_path_list = config.get('DEFAULT', 'db_path', fallback=os.path.join(PYERM_HOME, 'experiment.db'))
         db_path_list = db_path_list.split(',')
         db_path_list = [db_path for db_path in db_path_list if os.path.exists(db_path)]
-        if st.session_state.db_path not in db_path_list and os.path.exists(st.session_state.db_path):
+        if st.session_state.db_path not in db_path_list:
             db_path_list.append(st.session_state.db_path)
         last_db_path_index = db_path_list.index(st.session_state.db_path)
         st.session_state.db_path_list = db_path_list
@@ -126,7 +126,6 @@ def main():
         """
     st.markdown(hide_menu_style, unsafe_allow_html=True)
 
-    # 自定义底部版权信息
     footer_style = """
         <style>
         .custom-footer {

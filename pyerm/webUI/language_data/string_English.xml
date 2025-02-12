@@ -96,17 +96,21 @@
         <task_select>
             <title>## Task Selection</title>
             <task_select>Available tasks:</task_select>
+            <task_empty>**No task found in database**</task_empty>
             <add_new_task_checkbox>Add new task</add_new_task_checkbox>
             <add_new_task_input>New task name</add_new_task_input>
             <task_ok>Confirm</task_ok>
+            <task_empty_error>Error: Task name cannot be empty.</task_empty_error>
         </task_select>
 
         <method_select>
             <title>## Method Selection</title>
             <method_select>Available methods:</method_select>
+            <method_empty>**No method found in database**</method_empty>
             <add_new_method_checkbox>Add new method</add_new_method_checkbox>
             <add_new_method_input>New method name</add_new_method_input>
             <method_ok>Confirm</method_ok>
+            <method_empty_error>Error: Method name cannot be empty.</method_empty_error>
         </method_select>
 
         <set_method_param>
@@ -132,9 +136,11 @@
         <data_select>
             <title>## Data Selection</title>
             <data_select>Available data:</data_select>
+            <data_empty>**No data found in database**</data_empty>
             <add_new_data_checkbox>Add new data</add_new_data_checkbox>
             <add_new_data_input>New data name</add_new_data_input>
             <data_ok>Confirm</data_ok>
+            <data_empty_error>Error: Data name cannot be empty.</data_empty_error>
         </data_select>
 
         <set_data_param>
@@ -212,7 +218,8 @@
         <sidebar_task>Task:</sidebar_task>
         <sidebar_method>Method:</sidebar_method>
         <sidebar_data>Data:</sidebar_data>
-        <not_setted>**Not Set**</not_setted>
+        <not_setted>**Not be set**</not_setted>
+        <no_setting>No Setting</no_setting>
         <sidebar_method_title>### Method Parameters:</sidebar_method_title>
         <sidebar_data_title>### Data Parameters:</sidebar_data_title>
         <sidebar_experiment_info_title>### Experiment Information:</sidebar_experiment_info_title>

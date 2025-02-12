@@ -96,17 +96,21 @@
         <task_select>
             <title>## 任务选择</title>
             <task_select>现有备选任务:</task_select>
+            <task_empty>**数据库无任务存在**</task_empty>
             <add_new_task_checkbox>添加新任务</add_new_task_checkbox>
             <add_new_task_input>新任务名称</add_new_task_input>
             <task_ok>确定</task_ok>
+            <task_empty_error>错误：任务名称不能为空。</task_empty_error>
         </task_select>
 
         <method_select>
             <title>## 方法选择</title>
             <method_select>现有备选方法:</method_select>
+            <method_empty>**数据库无方法存在**</method_empty>
             <add_new_method_checkbox>添加新方法</add_new_method_checkbox>
             <add_new_method_input>新方法名称</add_new_method_input>
             <method_ok>确定</method_ok>
+            <method_empty_error>错误：方法名称不能为空。</method_empty_error>
         </method_select>
 
         <set_method_param>
@@ -132,9 +136,11 @@
         <data_select>
             <title>## 数据选择</title>
             <data_select>现有备选数据:</data_select>
+            <data_empty>**数据库无数据存在**</data_empty>
             <add_new_data_checkbox>添加新数据</add_new_data_checkbox>
             <add_new_data_input>新数据名称</add_new_data_input>
             <data_ok>确定</data_ok>
+            <data_empty_error>错误：数据名称不能为空。</data_empty_error>
         </data_select>
 
         <set_data_param>
@@ -213,6 +219,7 @@
         <sidebar_method>方法：</sidebar_method>
         <sidebar_data>数据：</sidebar_data>
         <not_setted>**未设置**</not_setted>
+        <no_setting>无设置</no_setting>
         <sidebar_method_title>### 方法参数：</sidebar_method_title>
         <sidebar_data_title>### 数据参数：</sidebar_data_title>
         <sidebar_experiment_info_title>### 实验信息：</sidebar_experiment_info_title>

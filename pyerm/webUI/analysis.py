@@ -147,7 +147,7 @@ def sidebar_select_analysis():
                                 st.session_state.lm["analysis.sidebar_select_analysis.radio_choice2"],
                             ])
         
-def select_setting(db):
+def select_setting(db:Database):
     st.write(st.session_state.lm["analysis.select_setting.title"])
     cols = st.columns(3)
     with cols[0]:
@@ -169,10 +169,15 @@ def select_setting(db):
         dataset = st.selectbox(st.session_state.lm["analysis.select_setting.select_data_select"], datasets)
         
     with cols[1]:
-        method_id_sql = f'SELECT DISTINCT experiment_list.method_id, method_{method}.remark FROM \
-            experiment_list INNER JOIN method_{method} ON experiment_list.method_id = method_{method}.method_id \
-            WHERE task = "{task}" AND method = "{method}" AND data = "{dataset}"'
-        method_ids = {(m[1] if m[1] is not None else m[0]):m[0] for m in db.conn.execute(method_id_sql).fetchall()}
+        if f"method_{method}" in db.table_names:
+            method_id_sql = f'SELECT DISTINCT experiment_list.method_id, method_{method}.remark FROM \
+                experiment_list INNER JOIN method_{method} ON experiment_list.method_id = method_{method}.method_id \
+                WHERE task = "{task}" AND method = "{method}" AND data = "{dataset}"'
+            method_ids = {(m[1] if m[1] is not None else m[0]):m[0] for m in db.conn.execute(method_id_sql).fetchall()}
+        else:
+            method_id_sql = f'SELECT DISTINCT method_id FROM experiment_list WHERE task = "{task}" AND method = "{method}" AND data = "{dataset}"'
+            method_ids = {m[0]:m[0] for m in db.conn.execute(method_id_sql).fetchall()}
+
         method_id = st.selectbox(st.session_state.lm["analysis.select_setting.method_id_select"], method_ids.keys())
         method_id = method_ids[method_id]
         if method_id != -1:
@@ -385,7 +390,7 @@ def single_setting_plot(db, task, same_setting_ids, plot_type):
         plot_data = {x_label: [], y_label: []}
         for i, score_column in enumerate(result_info.columns):
             plot_data[x_label].append(score_column)
-            plot_data[y_label].append(result_info.loc[value_type][i])
+            plot_data[y_label].append(result_info.loc[value_type].iloc[i])
         plot_df = pd.DataFrame(plot_data)
         if plot_type == 'Lineplot':
             plot_buf = lineplot(plot_df, x_label, y_label, title, (figure_size_x, figure_size_y), **additional_params_dict)
