@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.6
+# Version: 0.3.7
 
 import pandas as pd
 import streamlit as st
@@ -79,7 +79,7 @@ def record():
         st.sidebar.write(st.session_state.lm["record.sidebar_data"], st.session_state.record_data if st.session_state.record_data else st.session_state.lm["record.not_setted"])
         st.sidebar.write(st.session_state.lm["record.sidebar_method_title"])
         if st.session_state.record_method_params is not None:
-            if st.session_state.record_method_params is not -1:
+            if isinstance(st.session_state.record_method_params, int) and st.session_state.record_method_params != -1:
                 st.sidebar.dataframe(st.session_state.record_method_params, use_container_width=True)
             else:
                 st.sidebar.write(st.session_state.lm["record.no_setting"])
@@ -88,7 +88,7 @@ def record():
 
         st.sidebar.write(st.session_state.lm["record.sidebar_data_title"])
         if st.session_state.record_data_params is not None:
-            if st.session_state.record_data_params is not -1:
+            if isinstance(st.session_state.record_data_params, int) and st.session_state.record_data_params != -1:
                 st.sidebar.dataframe(st.session_state.record_data_params, use_container_width=True)
             else:
                 st.sidebar.write(st.session_state.lm["record.no_setting"])
@@ -120,12 +120,12 @@ def record():
                 exp = Experiment(st.session_state.db_path)
                 try:
                     exp.task_init(st.session_state.record_task)
-                    if st.session_state.record_method_params != -1:
+                    if isinstance(st.session_state.record_method_params, int) and st.session_state.record_method_params != -1:
                         method_param_dict = st.session_state.record_method_params.to_dict(orient='records')[0]
                     else:
                         method_param_dict = {}
                     exp.method_init(st.session_state.record_method, method_param_dict, remark=method_remark)
-                    if st.session_state.record_data_params != -1:
+                    if isinstance(st.session_state.record_data_params, int) and st.session_state.record_data_params != -1:
                         data_param_dict = st.session_state.record_data_params.to_dict(orient='records')[0]
                     else:
                         data_param_dict = {}
@@ -148,7 +148,10 @@ def record():
                     st.session_state.record_result_imgs = {}
                 except Exception as e:
                     st.sidebar.error(st.session_state.lm["record.add_experiment_failed"] + str(e))
-                
+                    del(exp)
+
+        del(db)
+              
     st.sidebar.write("---")
     if st.sidebar.button(st.session_state.lm["app.refresh"], key='refresh', use_container_width=True):
         st.rerun()

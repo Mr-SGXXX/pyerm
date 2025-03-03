@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.5
+# Version: 0.3.7
 
 import pandas as pd
 from PIL import Image
@@ -75,6 +75,7 @@ def select_tables():
     table_name:str = st.session_state.table_name
     st.write(st.session_state.lm["table.select_tables.title"], table_name)
     if st.session_state.sql is not None:
+        st.session_state.sql = st.session_state.sql.replace("\n", "").replace("\r", "")
         try:
             if "SELECT" not in st.session_state.sql.upper():
                 db.conn.execute(st.session_state.sql)

@@ -264,6 +264,13 @@
             <remark_cur_experiment_failed_number>Error: Remark name cannot be a positive number.</remark_cur_experiment_failed_number>
         </remark_cur_experiment>
 
+        <export_single_experiment_as_str>
+            <title>## Export Current Experiment as String</title>
+            <description>You can export all information of current experiment as a json string for migrating to other databases or using elsewhere.</description>
+            <export_button>Export Experiment String</export_button>
+            <download_json_button>Download JSON File</download_json_button>
+        </export_single_experiment_as_str>
+
         <no_experiment_found_text>No experiment found. Please make sure any experiment has been run.</no_experiment_found_text>
         
         <sidebar_choose_experiment_title>## Choose Experiment</sidebar_choose_experiment_title>

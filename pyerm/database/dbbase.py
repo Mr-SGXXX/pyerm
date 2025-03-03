@@ -69,6 +69,9 @@ class Database:
         self.cursor.execute("PRAGMA data_version;")
         version = self.cursor.fetchone()[0]
         return version
+    
+    def close(self):
+        self.__del__()
 
 
 class Table:

@@ -264,6 +264,13 @@
             <remark_cur_experiment_failed_number>错误：备注名称不能为正数。</remark_cur_experiment_failed_number>
         </remark_cur_experiment>
 
+        <export_single_experiment_as_str>
+            <title>## 导出当前实验为字符串</title>
+            <description>您可以将当前实验的所有信息导出为json字符串，以便迁移到其他数据库或在其他地方使用。</description>
+            <export_button>导出实验字符串</export_button>
+            <download_json_button>下载json文件</download_json_button>
+        </export_single_experiment_as_str>
+
         <no_experiment_found_text>未找到任何实验。请确保已运行某一实验。</no_experiment_found_text>
         
         <sidebar_choose_experiment_title>## 选择实验</sidebar_choose_experiment_title>
@@ -312,7 +319,7 @@
         <sidebar_select_analysis>
             <title>## 实验分析</title>
             <radio_text>**分析任务**:</radio_text>
-            <radio_choice1>单一设置分析</radio_choice1>
+            <radio_choice1>单设置分析</radio_choice1>
             <radio_choice2>多设置分析</radio_choice2>
         </sidebar_select_analysis>
 
@@ -426,13 +433,13 @@
         </multi_setting_plot>
 
         <auto_remark_single_setting_failed_text>错误：未找到任何实验</auto_remark_single_setting_failed_text>
-        <single_setting_analysis_text>单一设置分析</single_setting_analysis_text>
+        <single_setting_analysis_text>单设置分析</single_setting_analysis_text>
         <multi_setting_analysis_text>多设置分析</multi_setting_analysis_text>
         <multi_setting_record_cur_setting_button>记录当前设置</multi_setting_record_cur_setting_button>
     </analysis>
 
     <table>
-        <title>数据库的表</title>
+        <title>数据库表</title>
 
         <detect_tables>
             <title>## 检测到的表</title>

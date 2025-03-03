@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.6
+# Version: 0.3.7
 
 import pandas as pd
 import streamlit as st
@@ -29,11 +29,15 @@ from PIL import Image
 import re
 import io
 import typing
+import base64
+import json
+import numpy as np
 
 from pyerm.database.dbbase import Database
 from pyerm.database.utils import get_result_statistics, get_result_statistics_by_ids
 from pyerm.database.utils import method_id2remark_name, data_id2remark_name, experiment_remark_name2id
 from pyerm.database.utils import method_remark_name2id, data_remark_name2id
+from pyerm.database.utils import split_result_info
 from pyerm.webUI import PYERM_HOME
 from pyerm.webUI.utils import boxplot, violinplot, lineplot, barplot
 
@@ -58,6 +62,8 @@ def analysis():
                     st.rerun()
             st.write('---')
             multi_setting_analysis(db)
+        
+        del(db)
             
     st.sidebar.write("---")
     if st.sidebar.button(st.session_state.lm["app.refresh"], key='refresh', use_container_width=True):
@@ -98,6 +104,8 @@ def single_setting_analysis(db, task, method, method_id, dataset, dataset_id):
     if st.checkbox(st.session_state.lm["analysis.single_setting_analysis.delete_all_cur_setting_checkbox"], value=False):
         if st.button(st.session_state.lm["analysis.single_setting_analysis.delete_all_cur_setting_confirm_button"], key='delete_same_setting'):
             delete_all_same_setting_experiment(db, task, same_setting_ids)
+
+    export_experiments_of_same_setting_as_str(db, same_setting_ids, task, method, method_id, dataset, dataset_id)
 
 def multi_setting_analysis(db):
     st.sidebar.write(st.session_state.lm["analysis.multi_setting_analysis.sidebar_cur_task_title"], st.session_state.cur_analysis_task)
@@ -164,7 +172,7 @@ def select_setting(db:Database):
         
     with cols[2]:
         st.write(st.session_state.lm["analysis.select_setting.select_data_title"])
-        dataset_sql = f'SELECT DISTINCT data FROM experiment_list WHERE task = "{task}" AND method = "{method}"'
+        dataset_sql = f'SELECT DISTINCT data FROM experiment_list WHERE task = "{task}" AND method = "{method}" AND status = "finished"'
         datasets = [d[0] for d in db.conn.execute(dataset_sql).fetchall()]
         dataset = st.selectbox(st.session_state.lm["analysis.select_setting.select_data_select"], datasets)
         
@@ -172,7 +180,7 @@ def select_setting(db:Database):
         if f"method_{method}" in db.table_names:
             method_id_sql = f'SELECT DISTINCT experiment_list.method_id, method_{method}.remark FROM \
                 experiment_list INNER JOIN method_{method} ON experiment_list.method_id = method_{method}.method_id \
-                WHERE task = "{task}" AND method = "{method}" AND data = "{dataset}"'
+                WHERE task = "{task}" AND method = "{method}" AND data = "{dataset}" AND status = "finished"'
             method_ids = {(m[1] if m[1] is not None else m[0]):m[0] for m in db.conn.execute(method_id_sql).fetchall()}
         else:
             method_id_sql = f'SELECT DISTINCT method_id FROM experiment_list WHERE task = "{task}" AND method = "{method}" AND data = "{dataset}"'
@@ -199,6 +207,9 @@ def select_setting(db:Database):
                     remark = None
                 if st.button(st.session_state.lm["analysis.select_setting.remark_method_button"], key='confirm_remark_method'):
                     try:
+                        remarks = [r[0] for r in method_table.select('remark')]
+                        if remark in remarks:
+                            raise ValueError
                         method_table.update(where=f'method_id={method_id}', remark=remark)
                         db.conn.commit()
                     except:
@@ -215,7 +226,7 @@ def select_setting(db:Database):
         
         
     with cols[2]:
-        dataset_id_sql = f'SELECT DISTINCT data_id FROM experiment_list WHERE task = "{task}" AND method = "{method}" AND method_id = "{method_id}" AND data = "{dataset}"'
+        dataset_id_sql = f'SELECT DISTINCT data_id FROM experiment_list WHERE task = "{task}" AND method = "{method}" AND method_id = "{method_id}" AND data = "{dataset}"  AND status = "finished"'
         dataset_ids = {data_id2remark_name(db, dataset, d[0]):d[0] for d in db.conn.execute(dataset_id_sql).fetchall()}
         dataset_id = st.selectbox(st.session_state.lm["analysis.select_setting.data_id_select"], dataset_ids.keys())
         dataset_id = dataset_ids[dataset_id]
@@ -239,6 +250,9 @@ def select_setting(db:Database):
                     remark = None
                 if st.button(st.session_state.lm["analysis.select_setting.remark_data_button"], key='confirm_remark_data'):
                     try:
+                        remarks = [r[0] for r in data_table.select('remark')]
+                        if remark in remarks:
+                            raise ValueError
                         data_table.update(where=f'data_id={dataset_id}', remark=remark)
                         db.conn.commit()
                     except:
@@ -534,3 +548,101 @@ def auto_remark_single_setting(db, task, method, method_id, dataset, dataset_id,
         db.conn.commit()
     else:
         st.error(st.session_state.lm["analysis.select_setting.auto_remark_single_setting_failed_text"])
+
+def export_experiments_of_same_setting_as_str(db, same_setting_ids, task, method, method_id, data, data_id):
+    def detect_experiment_info(experiment_id):
+        experiment_table = db['experiment_list']
+        basic_info = experiment_table.select(where=f'id={experiment_id}')
+        basic_columns = experiment_table.columns
+        basic_info = pd.DataFrame(basic_info, columns=basic_columns)
+        result_info = None
+        image_dict = {}
+        task = basic_info['task'][0]
+        if basic_info['status'][0] == 'finished':
+            result_table = db[f'result_{task}']
+            result_info = result_table.select(where=f'experiment_id={experiment_id}')
+            result_columns = result_table.columns
+            result_info = pd.DataFrame(result_info, columns=result_columns)
+            result_info, image_dict = split_result_info(result_info)
+        
+        return basic_info, result_info, image_dict
+    
+    def custom_serializer(obj):
+        if isinstance(obj, np.integer): 
+            return int(obj)
+        elif isinstance(obj, np.floating): 
+            return float(obj)
+        elif isinstance(obj, np.ndarray): 
+            return obj.tolist()
+        else:
+            raise TypeError(f"Type {type(obj)} not serializable")
+    
+    st.sidebar.markdown(st.session_state.lm["details.export_single_experiment_as_str.title"])
+    st.sidebar.write(st.session_state.lm["details.export_single_experiment_as_str.description"])
+    if st.sidebar.button(st.session_state.lm["details.export_single_experiment_as_str.export_button"]):
+        method_info = None
+        data_info = None
+        if method_id != -1:
+            method_table = db[f'method_{method}']
+            method_info = method_table.select(where=f'method_id={method_id}')
+            method_columns = method_table.columns
+            method_info = pd.DataFrame(method_info, columns=method_columns)
+        if data_id != -1:
+            data_table = db[f'data_{data}']
+            data_info = data_table.select(where=f'data_id={data_id}')
+            data_columns = data_table.columns
+            data_info = pd.DataFrame(data_info, columns=data_columns)
+        
+        method_info = method_info.drop('method_id', axis=1) if method_info is not None else None
+        method_info = method_info.to_dict(orient='list') if method_info is not None else None
+        method_info = {k: v[0] for k, v in method_info.items()} if method_info is not None else None
+        
+        data_info = data_info.drop('data_id', axis=1) if data_info is not None else None
+        data_info = data_info.to_dict(orient='list') if data_info is not None else None
+        data_info = {k: v[0] for k, v in data_info.items()} if data_info is not None else None
+
+        experiment_str_list = []
+        for experiment_id in same_setting_ids:
+            basic_info, result_info, image_dict = detect_experiment_info(experiment_id)
+            basic_info_dict = {
+                'id': basic_info['id'][0],
+                'remark': basic_info['remark'][0],
+                'description': basic_info['description'][0],
+                'method': basic_info['method'][0],
+                'method_id': basic_info['method_id'][0],
+                'data': basic_info['data'][0],
+                'data_id': basic_info['data_id'][0],
+                'task': basic_info['task'][0],
+                'tags': basic_info['tags'][0],
+                'experimenters': basic_info['experimenters'][0],
+                'start_time': basic_info['start_time'][0],
+                'end_time': basic_info['end_time'][0],
+                'useful_time_cost': basic_info['useful_time_cost'][0],
+                'status': basic_info['status'][0],
+                'failed_reason': basic_info['failed_reason'][0]
+            }
+            
+            result_info = result_info.to_dict(orient='list') if result_info is not None else None
+            result_info = {k: v[0] for k, v in result_info.items()} if result_info is not None else None
+
+            result_imgs = {k: base64.b64encode(v).decode('utf-8') for k, v in image_dict.items()} if result_info is not None else None
+
+
+            experiment_dict = {
+                'basic_info': basic_info_dict,c+c+
+                'method_info': method_info,
+                'data_info': data_info,
+                'result_info': result_info,
+                'result_imgs': result_imgs
+            }
+            experiment_str_list.append(experiment_dict)
+        
+        experiments_json_str = json.dumps(experiment_str_list, indent=2, default=custom_serializer)
+
+        file_name = f"{task}_{method}_{method_id2remark_name(db, method, method_id)}_{data}_{data_id2remark_name(db, data, data_id)}.json"
+        st.sidebar.code(experiments_json_str)
+        st.sidebar.download_button(label=st.session_state.lm["details.export_single_experiment_as_str.download_json_button"],
+                                    data=experiments_json_str, file_name=file_name, mime="application/json")
+        # if st.sidebar.checkbox("Show JSON"):
+        
+    

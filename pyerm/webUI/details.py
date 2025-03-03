@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.5
+# Version: 0.3.7
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -29,6 +29,8 @@ from PIL import Image
 import io
 from datetime import datetime
 from time import time
+import json
+import base64
 
 from pyerm.database.dbbase import Database
 from pyerm.database.utils import split_result_info, get_result_statistics, experiment_remark_name2id
@@ -122,6 +124,7 @@ def details():
                     st.write(result_info)
                     st.write(st.session_state.lm["details.experiment_result_scores_notice"].format(NUM_SAME_SETTING_RECORDS=num_same_setting_records))
                 else:
+                    result_info, image_dict = None, {}
                     st.write(st.session_state.lm["details.experiment_result_not_exists"])
             with cols[1]:
                 st.write(st.session_state.lm["details.experiment_method_param_title"])
@@ -169,9 +172,15 @@ def details():
             if st.checkbox(st.session_state.lm["details.experiment_delete_checkbox"], value=False):
                 if st.button(st.session_state.lm["details.experiment_delete_confirm_button"]):
                     delete_current_experiment(db)
+            
+            export_single_experiment_as_str(cur_id, basic_info, method_info, data_info, result_info, image_dict)
+
+        del(db)
+
     st.sidebar.write("---")
     if st.sidebar.button(st.session_state.lm["app.refresh"], key='refresh', use_container_width=True):
         st.rerun()
+
 
 def basic_information(basic_info:pd.DataFrame):
     id = basic_info['id'][0]
@@ -321,6 +330,66 @@ def delete_current_experiment(db):
     db.conn.commit()
     st.session_state.cur_detail_id = None
     st.rerun()
+
+def export_single_experiment_as_str(cur_id, basic_info, method_info=None, data_info=None, result_info=None, image_dict={}):
+    def custom_serializer(obj):
+        if isinstance(obj, np.integer): 
+            return int(obj)
+        elif isinstance(obj, np.floating): 
+            return float(obj)
+        elif isinstance(obj, np.ndarray): 
+            return obj.tolist()
+        else:
+            raise TypeError(f"Type {type(obj)} not serializable")
+        
+    st.sidebar.markdown(st.session_state.lm["details.export_single_experiment_as_str.title"])
+    st.sidebar.write(st.session_state.lm["details.export_single_experiment_as_str.description"])
+    if st.sidebar.button(st.session_state.lm["details.export_single_experiment_as_str.export_button"]):
+        basic_info_dict = {
+            'id': basic_info['id'][0],
+            'remark': basic_info['remark'][0],
+            'description': basic_info['description'][0],
+            'method': basic_info['method'][0],
+            'method_id': basic_info['method_id'][0],
+            'data': basic_info['data'][0],
+            'data_id': basic_info['data_id'][0],
+            'task': basic_info['task'][0],
+            'tags': basic_info['tags'][0],
+            'experimenters': basic_info['experimenters'][0],
+            'start_time': basic_info['start_time'][0],
+            'end_time': basic_info['end_time'][0],
+            'useful_time_cost': basic_info['useful_time_cost'][0],
+            'status': basic_info['status'][0],
+            'failed_reason': basic_info['failed_reason'][0]
+        }
+
+        method_info = method_info.drop('method_id', axis=1) if method_info is not None else None
+        method_info = method_info.to_dict(orient='list') if method_info is not None else None
+        method_info = {k: v[0] for k, v in method_info.items()} if method_info is not None else None
+        
+        data_info = data_info.drop('data_id', axis=1) if data_info is not None else None
+        data_info = data_info.to_dict(orient='list') if data_info is not None else None
+        data_info = {k: v[0] for k, v in data_info.items()} if data_info is not None else None
+        
+        result_info = result_info.to_dict(orient='list') if result_info is not None else None
+        result_info = {k: v[0] for k, v in result_info.items()} if result_info is not None else None
+
+        result_imgs = {k: base64.b64encode(v).decode('utf-8') for k, v in image_dict.items()} if result_info is not None else None
+
+
+        experiment_dict = {
+            'basic_info': basic_info_dict,
+            'method_info': method_info,
+            'data_info': data_info,
+            'result_info': result_info,
+            'result_imgs': result_imgs
+        }
+
+        experiment_json_str = json.dumps([experiment_dict], indent=2, default=custom_serializer)
+    
+        st.sidebar.code(experiment_json_str)
+        st.sidebar.download_button(label=st.session_state.lm["details.export_single_experiment_as_str.download_json_button"], data=experiment_json_str, file_name=f"experiment_{cur_id}.json", mime="application/json")
+    
 
 def title():
     st.title(st.session_state.lm["details.title"])

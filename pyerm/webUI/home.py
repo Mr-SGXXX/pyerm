@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.6
+# Version: 0.3.7
 
 import streamlit as st
 import os
@@ -58,6 +58,7 @@ def home():
                     delete_failed_experiments(db)
                     st.session_state.cur_detail_id = None
                     st.success(st.session_state.lm["home.delete_failed_records_success"])
+                    del db
 
             st.write("---")
             st.markdown(st.session_state.lm["home.export_data_title"])
@@ -120,7 +121,7 @@ def load_db():
         st.write(st.session_state.lm["home.load_db.load_failed_text"])
     if st.button(st.session_state.lm["home.load_db.change_database_button"]):
         st.session_state.db_path = db_path
-        st.session_state.zip = None
+        st.session_state.clean_cache = True
         st.rerun()
     st.write(st.session_state.lm["home.load_db.current_path_text"].format(DB_PATH=st.session_state.db_path))
     

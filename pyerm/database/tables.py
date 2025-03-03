@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.5
+# Version: 0.3.7
 
 from PIL import Image
 from io import BytesIO
@@ -74,8 +74,7 @@ class ExperimentTable(Table):
             end_time = None
         else:
             end_time = localtime(end_time)
-            end_time = strftime("%Y-%m-%d %H:%M:%S", end_time)
-        super().update(f"id={experiment_id}", end_time=strftime(end_time) if end_time is not None else None,
+        super().update(f"id={experiment_id}", end_time=strftime("%Y-%m-%d %H:%M:%S", end_time) if end_time is not None else None,
                          useful_time_cost=useful_time_cost, status='finished')
 
     def experiment_failed(self, experiment_id:int, error_info:str=None, end_time:float=None) -> None:
@@ -120,16 +119,18 @@ class DataTable(Table):
             if key not in self.columns:
                 def_str = value2def(kwargs[key])
                 self.add_column(key, def_str)
-                self.update(**{key: 'NULL'})
+                self.update(**{key: None})
         remark = kwargs.pop('remark', None)
-        condition = ' AND '.join([f'{k.replace(" ", "_")}=?' for k in kwargs.keys()])
-        values = list(kwargs.values())
+        condition = ' AND '.join([f'{k.replace(" ", "_")}=?' if kwargs[k] is not None else f'{k.replace(" ", "_")} IS NULL' for k in kwargs.keys()])
+        values = [v for v in kwargs.values() if v is not None]
 
         query = f"SELECT data_id FROM {self.table_name} WHERE {condition}"
         id_list = self.db.cursor.execute(query, values).fetchall()
         # print(kwargs)
 
         if id_list == []:
+            if remark is not None:
+                kwargs['remark'] = remark
             return super().insert(**kwargs)
         else:
             if remark is not None:
@@ -157,15 +158,17 @@ class MethodTable(Table):
         for key in kwargs.keys():
             if key not in self.columns:
                 self.add_column(key, value2def(kwargs[key]))
-                self.update(**{key: 'NULL'})
+                self.update(**{key: None})
         remark = kwargs.pop('remark', None)
-        condition = ' AND '.join([f'{k.replace(" ", "_")}=?' for k in kwargs.keys()])
-        values = list(kwargs.values())
+        condition = ' AND '.join([f'{k.replace(" ", "_")}=?' if kwargs[k] is not None else f'{k.replace(" ", "_")} IS NULL' for k in kwargs.keys()])
+        values = [v for v in kwargs.values() if v is not None]
 
         query = f"SELECT method_id FROM {self.table_name} WHERE {condition}"
         id_list = self.db.cursor.execute(query, values).fetchall()
         # print(kwargs)
         if id_list == []:
+            if remark is not None:
+                kwargs['remark'] = remark
             return super().insert(**kwargs)
         else:
             if remark is not None:

@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.6
+# Version: 0.3.7
 
 import streamlit as st
 import os
@@ -67,50 +67,51 @@ def init():
         st.session_state.lm = LanguageManager(config.get('DEFAULT', 'language', fallback='English'))
     else:
         config.set('DEFAULT', 'language', st.session_state.lm.language)
-    if 'table_name' not in st.session_state:
+    if 'table_name' not in st.session_state or st.session_state.clean_cache:
         st.session_state.table_name = None
-    if 'sql' not in st.session_state:
+    if 'sql' not in st.session_state or st.session_state.clean_cache:
         st.session_state.sql = None
-    if 'zip' not in st.session_state:
+    if 'zip' not in st.session_state or st.session_state.clean_cache:
         st.session_state.zip = None
-    if 'record_task' not in st.session_state:
+    if 'record_task' not in st.session_state or st.session_state.clean_cache:
         st.session_state.record_task = None
-    if 'record_method' not in st.session_state:
+    if 'record_method' not in st.session_state or st.session_state.clean_cache:
         st.session_state.record_method = None
-    if 'record_method_params' not in st.session_state:
+    if 'record_method_params' not in st.session_state or st.session_state.clean_cache:
         st.session_state.record_method_params = None
-    if 'record_data' not in st.session_state:
+    if 'record_data' not in st.session_state or st.session_state.clean_cache:
         st.session_state.record_data = None
-    if 'record_data_params' not in st.session_state:
+    if 'record_data_params' not in st.session_state or st.session_state.clean_cache:
         st.session_state.record_data_params = None
-    if 'record_experiment_info' not in st.session_state:
+    if 'record_experiment_info' not in st.session_state or st.session_state.clean_cache:
         st.session_state.record_experiment_info = None
-    if 'record_result_scores' not in st.session_state:
+    if 'record_result_scores' not in st.session_state or st.session_state.clean_cache:
         st.session_state.record_result_scores = None
-    if 'record_result_imgs' not in st.session_state:
+    if 'record_result_imgs' not in st.session_state or st.session_state.clean_cache:
         st.session_state.record_result_imgs = {}
-    if 'last_version' not in st.session_state:
+    if 'last_version' not in st.session_state or st.session_state.clean_cache:
         st.session_state.last_version = None
-    if 'selected_row' not in st.session_state:
+    if 'selected_row' not in st.session_state or st.session_state.clean_cache:
         st.session_state.selected_row = None
-    if 'cur_detail_id' not in st.session_state:
+    if 'cur_detail_id' not in st.session_state or st.session_state.clean_cache:
         st.session_state.cur_detail_id = None
-    if 'cur_detail_img_id' not in st.session_state:
+    if 'cur_detail_img_id' not in st.session_state or st.session_state.clean_cache:
         st.session_state.cur_detail_img_id = None
-    if 'recorded_analysis_setting' not in st.session_state:
+    if 'recorded_analysis_setting' not in st.session_state or st.session_state.clean_cache:
         st.session_state.recorded_analysis_setting = []
-    if 'selected_settings' not in st.session_state:
+    if 'selected_settings' not in st.session_state or st.session_state.clean_cache:
         st.session_state.selected_settings = []
-    if 'error_flag' not in st.session_state:
+    if 'error_flag' not in st.session_state or st.session_state.clean_cache:
         st.session_state.error_flag = False
-    if 'error_flag1' not in st.session_state:
+    if 'error_flag1' not in st.session_state or st.session_state.clean_cache:
         st.session_state.error_flag1 = False
-    if 'cur_analysis_task' not in st.session_state:
+    if 'cur_analysis_task' not in st.session_state or st.session_state.clean_cache:
         st.session_state.cur_analysis_task = None
     if 'single_table_part_max_records' not in st.session_state:
         st.session_state.single_table_part_max_records = int(config.get('DEFAULT', 'single_table_part_max_records', fallback=100))
     else:
         config.set('DEFAULT', 'single_table_part_max_records', str(st.session_state.single_table_part_max_records))
+    st.session_state.clean_cache = False
     with open(os.path.join(PYERM_HOME, 'config.ini'), 'w') as f:
         config.write(f)
 
