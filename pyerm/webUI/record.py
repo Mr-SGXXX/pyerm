@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.7
+# Version: 0.3.8
 
 import pandas as pd
 import streamlit as st
@@ -32,6 +32,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import typing
 import datetime
+import json
 
 from pyerm.database.dbbase import Database
 from pyerm.database.experiment import Experiment
@@ -79,7 +80,7 @@ def record():
         st.sidebar.write(st.session_state.lm["record.sidebar_data"], st.session_state.record_data if st.session_state.record_data else st.session_state.lm["record.not_setted"])
         st.sidebar.write(st.session_state.lm["record.sidebar_method_title"])
         if st.session_state.record_method_params is not None:
-            if isinstance(st.session_state.record_method_params, int) and st.session_state.record_method_params != -1:
+            if not isinstance(st.session_state.record_method_params, int):
                 st.sidebar.dataframe(st.session_state.record_method_params, use_container_width=True)
             else:
                 st.sidebar.write(st.session_state.lm["record.no_setting"])
@@ -88,7 +89,7 @@ def record():
 
         st.sidebar.write(st.session_state.lm["record.sidebar_data_title"])
         if st.session_state.record_data_params is not None:
-            if isinstance(st.session_state.record_data_params, int) and st.session_state.record_data_params != -1:
+            if not isinstance(st.session_state.record_data_params, int):
                 st.sidebar.dataframe(st.session_state.record_data_params, use_container_width=True)
             else:
                 st.sidebar.write(st.session_state.lm["record.no_setting"])
@@ -120,7 +121,7 @@ def record():
                 exp = Experiment(st.session_state.db_path)
                 try:
                     exp.task_init(st.session_state.record_task)
-                    if isinstance(st.session_state.record_method_params, int) and st.session_state.record_method_params != -1:
+                    if not isinstance(st.session_state.record_method_params, int):
                         method_param_dict = st.session_state.record_method_params.to_dict(orient='records')[0]
                     else:
                         method_param_dict = {}
@@ -147,12 +148,19 @@ def record():
                     st.session_state.record_result_scores = None
                     st.session_state.record_result_imgs = {}
                 except Exception as e:
-                    st.sidebar.error(st.session_state.lm["record.add_experiment_failed"] + str(e))
+                    st.sidebar.error(st.session_state.lm["record.add_experiment_failed"].format(REASON=str(e)))
                     del(exp)
-
-        del(db)
-              
     st.sidebar.write("---")
+    st.sidebar.write(st.session_state.lm["record.other_record_way"])
+    if st.sidebar.checkbox(st.session_state.lm["record.json4load"]):
+        full_experiment_json = st.sidebar.text_area(st.session_state.lm["record.full_experiment_json"], value="", height=200, key="full_experiment_json")
+        if st.sidebar.button(st.session_state.lm["record.btn_load_experiment_json"]):
+            try:
+                load_experiments_from_json(full_experiment_json)
+                st.sidebar.success(st.session_state.lm["record.add_experiment_success"])
+            except Exception as e:
+                st.sidebar.error(st.session_state.lm["record.add_experiment_failed"].format(REASON=str(e)))
+        st.sidebar.write("---")
     if st.sidebar.button(st.session_state.lm["app.refresh"], key='refresh', use_container_width=True):
         st.rerun()
         
@@ -255,7 +263,7 @@ def data_select(db: Database, task: str):
     except Exception as e:
         st.write(st.session_state.lm["record.data_select.data_empty"])
     if st.checkbox(st.session_state.lm["record.data_select.add_new_data_checkbox"]):
-        data = st.text_input(st.session_state.lm["record.data_select.add_new_data_input"], key="new_data")
+        data = st.text_input(st.session_.state.lm["record.data_select.add_new_data_input"], key="new_data")
     if st.button(st.session_state.lm["record.data_select.data_ok"], key="data_ok"):
         if data is None:
             st.error(st.session_state.lm["record.data_select.data_empty_error"])
@@ -431,6 +439,60 @@ def show_experiment_result():
         if img:
             st.sidebar.image(st.session_state.record_result_imgs[img], use_column_width=True)
 
+def load_experiments_from_json(json_str: str):
+    """
+    Load experiments from a JSON string and update the session state.
+    The JSON string should be in the format of a list of dictionaries, where each dictionary represents an experiment.
+    """
+    experiments = json.loads(json_str)
+    if not isinstance(experiments, list):
+        raise ValueError(st.session_state.lm["record.json_format_error"])
+    for exp in experiments:
+        if not isinstance(exp, dict):
+            raise ValueError(st.session_state.lm["record.json_format_error"])
+        basic_info = exp["basic_info"]
+        method_info = exp["method_info"]
+        data_info = exp["data_info"]
+        result_info = exp["result_info"]
+        result_imgs = exp["result_imgs"]
+        exp = Experiment(st.session_state.db_path)
+        if not isinstance(basic_info, dict):
+            raise ValueError(st.session_state.lm["record.json_format_error"])
+        exp.task_init(basic_info["task"])
+        if data_info is None:
+            exp.data_init(basic_info["data"])
+        else:
+            if not isinstance(data_info, dict):
+                raise ValueError(st.session_state.lm["record.json_format_error"])
+            exp.data_init(basic_info["data"], param_dict=data_info, remark=data_info.pop("remark"))
+        if method_info is None:
+            exp.method_init(basic_info["method"])
+        else:
+            if not isinstance(method_info, dict):
+                raise ValueError(st.session_state.lm["record.json_format_error"])
+            exp.method_init(basic_info["method"], param_dict=method_info, remark=method_info.pop("remark"))
+        start_time = datetime.datetime.strptime(basic_info["start_time"], "%Y-%m-%d %H:%M:%S").timestamp() if basic_info["start_time"] else None
+        exp.experiment_start(
+            description=basic_info["description"],
+            tags=basic_info["tags"],
+            experimenters=basic_info["experimenters"],
+            start_time=start_time,
+            remark=basic_info["remark"]
+        )
+        if basic_info["status"] == "finished":
+            if not isinstance(result_info, dict):
+                raise ValueError(st.session_state.lm["record.json_format_error"])
+            end_time = datetime.datetime.strptime(basic_info["end_time"], "%Y-%m-%d %H:%M:%S").timestamp() if basic_info["end_time"] else None
+            exp.experiment_over(
+                rst_dict=result_info,
+                image_dict=result_imgs,
+                end_time=end_time,
+                useful_time_cost=basic_info["useful_time_cost"]
+            )
+        elif basic_info["status"] == "failed":
+            end_time = datetime.datetime.strptime(basic_info["end_time"], "%Y-%m-%d %H:%M:%S").timestamp() if basic_info["end_time"] else None
+            exp.experiment_failed(error_info=basic_info["failed_reason"], end_time=basic_info["end_time"])
+
 def title():
     st.title(st.session_state.lm["record.title"])
     if os.path.exists(st.session_state.db_path) and st.session_state.db_path.endswith('.db'):
@@ -438,4 +500,4 @@ def title():
     else:
         st.write(st.session_state.lm["app.dataset_load_failed_text"])
 
-    
+

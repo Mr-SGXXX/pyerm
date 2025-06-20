@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.5
+# Version: 0.3.8
 
 from time import time
 import pandas as pd
@@ -109,6 +109,7 @@ def get_result_statistics_by_ids(db, task, same_setting_id):
     ]
     std_score_sql = f"SELECT {', '.join(std_queries)}"
     var_score = pd.read_sql_query(std_score_sql, db.conn)
+    var_score = var_score.astype('float64')
     std_score = var_score.apply(np.sqrt)
     std_score.columns = [col.replace('var_', '') for col in std_score.columns]
     
@@ -140,8 +141,8 @@ def split_result_info(result_info:pd.DataFrame):
         match = pattern.match(name)
         if match and not result_info[name].isnull().all():
             image_dict[result_info[f"{name}_name"][0]] = result_info[name][0]
-        elif result_info[name].isnull().all():
-            break
+        # elif result_info[name].isnull().all():
+        #     break
     
     return result_info[columns_keep], image_dict
 

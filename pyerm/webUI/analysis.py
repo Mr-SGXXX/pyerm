@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.7
+# Version: 0.3.8
 
 import pandas as pd
 import streamlit as st
@@ -187,7 +187,8 @@ def select_setting(db:Database):
             method_ids = {m[0]:m[0] for m in db.conn.execute(method_id_sql).fetchall()}
 
         method_id = st.selectbox(st.session_state.lm["analysis.select_setting.method_id_select"], method_ids.keys())
-        method_id = method_ids[method_id]
+        
+        method_id = method_ids[method_id] if method_id is not None else -1
         if method_id != -1:
             method_table = db[f'method_{method}']
             method_info = method_table.select(where=f'method_id={method_id}')
@@ -229,7 +230,7 @@ def select_setting(db:Database):
         dataset_id_sql = f'SELECT DISTINCT data_id FROM experiment_list WHERE task = "{task}" AND method = "{method}" AND method_id = "{method_id}" AND data = "{dataset}"  AND status = "finished"'
         dataset_ids = {data_id2remark_name(db, dataset, d[0]):d[0] for d in db.conn.execute(dataset_id_sql).fetchall()}
         dataset_id = st.selectbox(st.session_state.lm["analysis.select_setting.data_id_select"], dataset_ids.keys())
-        dataset_id = dataset_ids[dataset_id]
+        dataset_id = dataset_ids[dataset_id] if dataset_id is not None else -1
         if dataset_id != -1:
             data_table = db[f'data_{dataset}']
             data_info = data_table.select(where=f'data_id={dataset_id}')
@@ -546,8 +547,8 @@ def auto_remark_single_setting(db, task, method, method_id, dataset, dataset_id,
             db[f'experiment_list'].update(where=f'id={score_experiment_id}', 
                                             remark=f'{former_remark}_{score_column}_max')
         db.conn.commit()
-    else:
-        st.error(st.session_state.lm["analysis.select_setting.auto_remark_single_setting_failed_text"])
+    # else:
+    #     st.error(st.session_state.lm["analysis.auto_remark_single_setting_failed_text"])
 
 def export_experiments_of_same_setting_as_str(db, same_setting_ids, task, method, method_id, data, data_id):
     def detect_experiment_info(experiment_id):
@@ -605,7 +606,7 @@ def export_experiments_of_same_setting_as_str(db, same_setting_ids, task, method
         for experiment_id in same_setting_ids:
             basic_info, result_info, image_dict = detect_experiment_info(experiment_id)
             basic_info_dict = {
-                'id': basic_info['id'][0],
+                # 'id': basic_info['id'][0],
                 'remark': basic_info['remark'][0],
                 'description': basic_info['description'][0],
                 'method': basic_info['method'][0],
@@ -629,7 +630,7 @@ def export_experiments_of_same_setting_as_str(db, same_setting_ids, task, method
 
 
             experiment_dict = {
-                'basic_info': basic_info_dict,c+c+
+                'basic_info': basic_info_dict,
                 'method_info': method_info,
                 'data_info': data_info,
                 'result_info': result_info,

@@ -3,12 +3,13 @@
         <sidebar_page_select>## 请选择页面</sidebar_page_select>
         <sidebar_page_select_radio>可选页面:</sidebar_page_select_radio>
         <sidebar_page_select_radio_1>主页</sidebar_page_select_radio_1>
-        <sidebar_page_select_radio_2>手动记录</sidebar_page_select_radio_2>
+        <sidebar_page_select_radio_2>记录实验</sidebar_page_select_radio_2>
         <sidebar_page_select_radio_3>实验详情</sidebar_page_select_radio_3>
         <sidebar_page_select_radio_4>统计分析</sidebar_page_select_radio_4>
         <sidebar_page_select_radio_5>数据库表</sidebar_page_select_radio_5>
         <dataset_load_success_text>成功加载数据库(于{DB_PATH})</dataset_load_success_text>
         <dataset_load_failed_text>未加载数据库，请先加载数据库</dataset_load_failed_text>
+        <web_app_error_text>PYERM Web应用错误: {ERROR}</web_app_error_text>
         <refresh>刷新</refresh>
     </app>
     
@@ -91,7 +92,7 @@
     </home>
 
     <record>
-        <title>手动记录</title>
+        <title>记录实验</title>
 
         <task_select>
             <title>## 任务选择</title>
@@ -214,7 +215,7 @@
             <sidebar_img_select>选择图像</sidebar_img_select>
         </show_experiment_result>
 
-        <sidebar_title>## 手动记录实验</sidebar_title>
+        <sidebar_title>## 记录实验</sidebar_title>
         <sidebar_task>任务：</sidebar_task>
         <sidebar_method>方法：</sidebar_method>
         <sidebar_data>数据：</sidebar_data>
@@ -230,7 +231,12 @@
         <status_over>完成</status_over>
         <status_failed>失败</status_failed>
         <add_experiment_success>实验记录添加成功</add_experiment_success>
-        <add_experiment_failed>实验记录添加失败：</add_experiment_failed>
+        <add_experiment_failed>实验记录添加失败：{REASON}</add_experiment_failed>
+        <other_record_way>## 其他记录方式</other_record_way>
+        <json4load>导入json实验</json4load>
+        <full_experiment_json>输入json字符串</full_experiment_json>
+        <btn_load_experiment_json>加载实验记录</btn_load_experiment_json>
+        <json_format_error>json格式不正确，请检查输入！</json_format_error>
     </record>
 
     <details>

@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.2
+# Version: 0.3.8
 
 import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
@@ -86,6 +86,8 @@ def load_language_file(file_path):
 
 def boxplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **additional_params_dict):
     fig, ax = plt.subplots(figsize=figsize)
+    fig.tight_layout()
+    plt.subplots_adjust(left=0.1, bottom=0.15)
     if 'palette' not in additional_params_dict:
         additional_params_dict['palette'] = 'Set2'
     if 'linewidth' not in additional_params_dict:
@@ -96,7 +98,7 @@ def boxplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **addi
     ax.set_xlabel(x, fontsize=14)
     ax.set_ylabel(y, fontsize=14)
     ax.grid(True, linestyle='--', alpha=0.7)
-    ax.set_xticklabels(df[x].unique(), rotation=45, ha='right')
+    ax.set_xticklabels(df[x].unique(), rotation=30, ha='right')
     buf = io.BytesIO()
     fig.savefig(buf, format='png')
     buf.seek(0)
@@ -104,6 +106,8 @@ def boxplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **addi
 
 def violinplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **additional_params_dict):
     fig, ax = plt.subplots(figsize=figsize)
+    fig.tight_layout()
+    plt.subplots_adjust(left=0.1, bottom=0.15)
     if 'palette' not in additional_params_dict:
         additional_params_dict['palette'] = 'Set2'
     if 'linewidth' not in additional_params_dict:
@@ -114,7 +118,7 @@ def violinplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **a
     ax.set_xlabel(x, fontsize=14)
     ax.set_ylabel(y, fontsize=14)
     ax.grid(True, linestyle='--', alpha=0.7)
-    ax.set_xticklabels(df[x].unique(), rotation=45, ha='right')
+    ax.set_xticklabels(df[x].unique(), rotation=30, ha='right')
     buf = io.BytesIO()
     fig.savefig(buf, format='png')
     buf.seek(0)
@@ -122,6 +126,8 @@ def violinplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **a
 
 def lineplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **additional_params_dict):
     fig, ax = plt.subplots(figsize=figsize)
+    fig.tight_layout()
+    plt.subplots_adjust(left=0.1, bottom=0.15)
     if 'palette' not in additional_params_dict:
         additional_params_dict['palette'] = 'Set2'
     if 'linewidth' not in additional_params_dict:
@@ -132,7 +138,7 @@ def lineplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **add
     ax.set_xlabel(x, fontsize=14)
     ax.set_ylabel(y, fontsize=14)
     ax.grid(True, linestyle='--', alpha=0.7)
-    ax.set_xticklabels(df[x].unique(), rotation=45, ha='right')
+    ax.set_xticklabels(df[x].unique(), rotation=30, ha='right')
     buf = io.BytesIO()
     fig.savefig(buf, format='png')
     buf.seek(0)
@@ -140,6 +146,8 @@ def lineplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **add
 
 def barplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **additional_params_dict):
     fig, ax = plt.subplots(figsize=figsize)
+    fig.tight_layout()
+    plt.subplots_adjust(left=0.1, bottom=0.15)
     if 'palette' not in additional_params_dict:
         additional_params_dict['palette'] = 'Set2'
     if 'linewidth' not in additional_params_dict:
@@ -150,7 +158,7 @@ def barplot(df:pd.DataFrame, x:str, y:str, title:str='', figsize=(10, 6), **addi
     ax.set_xlabel(x, fontsize=14)
     ax.set_ylabel(y, fontsize=14)
     ax.grid(True, linestyle='--', alpha=0.7)
-    ax.set_xticklabels(df[x].unique(), rotation=45, ha='right')
+    ax.set_xticklabels(df[x].unique(), rotation=30, ha='right')
     buf = io.BytesIO()
     fig.savefig(buf, format='png')
     buf.seek(0)

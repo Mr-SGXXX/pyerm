@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.7
+# Version: 0.3.8
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -135,9 +135,11 @@ def details():
                         method_remark_name = method_info['remark'][0]
                         if method_remark_name:
                             st.write(st.session_state.lm["details.experiment_method_remark"].format(METHOD_REMARK_NAME=method_remark_name))
-                        method_info.drop(columns=['remark'], inplace=True)
+                        # method_info.drop(columns=['remark'], inplace=True)
                         method_info.index = [st.session_state.lm["details.experiment_method_index"]]
-                        st.dataframe(method_info.astype(str).transpose(), use_container_width=True)
+                        cols = [c for c in method_info.columns if c != 'remark']
+                        df_method = method_info[cols].astype(str).transpose()
+                        st.dataframe(df_method, use_container_width=True)
                 else:
                     st.write(st.session_state.lm["details.experiment_method_no_param"])
                     
@@ -150,9 +152,10 @@ def details():
                         data_remark_name = data_info['remark'][0]
                         if data_remark_name:
                             st.write(st.session_state.lm["details.experiment_data_remark"].format(DATA_REMARK_NAME=data_remark_name))
-                        data_info.drop(columns=['remark'], inplace=True)
+                        # data_info.drop(columns=['remark'], inplace=True)
                         data_info.index = [st.session_state.lm["details.experiment_data_index"]]
-                        st.dataframe(data_info.astype(str).transpose(), use_container_width=True)
+                        df_data = data_info[cols].astype(str).transpose()
+                        st.dataframe(df_data, use_container_width=True)
                 else:
                     st.write(st.session_state.lm["details.experiment_data_no_param"])
             
@@ -346,7 +349,7 @@ def export_single_experiment_as_str(cur_id, basic_info, method_info=None, data_i
     st.sidebar.write(st.session_state.lm["details.export_single_experiment_as_str.description"])
     if st.sidebar.button(st.session_state.lm["details.export_single_experiment_as_str.export_button"]):
         basic_info_dict = {
-            'id': basic_info['id'][0],
+            # 'id': basic_info['id'][0],
             'remark': basic_info['remark'][0],
             'description': basic_info['description'][0],
             'method': basic_info['method'][0],

@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.7
+# Version: 0.3.8
 
 from PIL import Image
 from io import BytesIO
@@ -29,6 +29,8 @@ from time import strftime, time, localtime
 import typing
 import traceback
 import sys
+import os
+import base64
 
 from .dbbase import Table, Database
 from .utils import value2def
@@ -89,7 +91,7 @@ class ExperimentTable(Table):
         if error_info is None:
             error_info = traceback.format_exc()
             # print(error_info)
-        super().update(f"id={experiment_id}", end_time=strftime(end_time) if end_time is not None else None,
+        super().update(f"id={experiment_id}", end_time=strftime("%Y-%m-%d %H:%M:%S", end_time) if end_time is not None else None,
                          status='failed', failed_reason=error_info)
 
     def get_experiment(self, experiment_id:int) -> dict:
@@ -217,7 +219,18 @@ class ResultTable(Table):
                 image_dict[image_key].save(image, format='PNG')
                 image = image.getvalue()
             elif isinstance(image_dict[image_key], str):
-                image = open(image_dict[image_key], 'rb').read()
+                try:
+                    decoded_base64_img = base64.b64decode(image_dict[image_key])
+                    decoded_base64_img = Image.open(BytesIO(decoded_base64_img))
+                    decoded_base64_img.copy().verify()  # Verify that it is a valid image
+                    image = BytesIO()
+                    decoded_base64_img.save(image, format='PNG')
+                    image = image.getvalue()
+                except:
+                    if os.path.isfile(image_dict[image_key]):
+                        image = open(image_dict[image_key], 'rb').read()
+                    else:
+                        raise ValueError(f"Image file {image_dict[image_key]} does not exist.")
             # print(type(image_key))
             # print(type(image))
             self.update(f"experiment_id={experiment_id}", **{f'image_{i}_name': image_key})

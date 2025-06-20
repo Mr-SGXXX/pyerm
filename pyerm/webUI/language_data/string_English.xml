@@ -10,6 +10,7 @@
         <dataset_load_success_text>Database Loaded (In {DB_PATH})</dataset_load_success_text>
         <dataset_load_failed_text>No database loaded, please load a database first.</dataset_load_failed_text>
         <refresh>Refresh</refresh>
+        <web_app_error_text>PYERM Web ERROR: {ERROR}</web_app_error_text>
     </app>
     
     <home>
@@ -91,7 +92,7 @@
     </home>
 
     <record>
-        <title>Recording Manually</title>
+        <title>Recording Experiment</title>
 
         <task_select>
             <title>## Task Selection</title>
@@ -230,7 +231,12 @@
         <status_over>Finished</status_over>
         <status_failed>Failed</status_failed>
         <add_experiment_success>Experiment record added successfully</add_experiment_success>
-        <add_experiment_failed>Failed to add experiment record:</add_experiment_failed>
+        <add_experiment_failed>Failed to add experiment record: {REASON}</add_experiment_failed>
+        <other_record_way>## Other Recording Way</other_record_way>
+        <json4load>Load experiment by json</json4load>
+        <full_experiment_json>Input json str</full_experiment_json>
+        <btn_load_experiment_json>Load experiment</btn_load_experiment_json>
+        <json_format_error>Wrong json format, check the input!</json_format_error>
     </record>
 
     <details>

@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.7
+# Version: 0.3.8
 
 import streamlit as st
 import os
@@ -147,26 +147,29 @@ def main():
     st.markdown(f'<div class="custom-footer">© 2024-{datetime.datetime.now().year} Yuxuan Shao | <a href="https://opensource.org/licenses/MIT">MIT License</a></div>', unsafe_allow_html=True)
     st.sidebar.title("PyERM WebUI")
     st.sidebar.markdown(st.session_state.lm["app.sidebar_page_select"])
-    
-    page = st.sidebar.radio(st.session_state.lm["app.sidebar_page_select_radio"],
-            [
-                st.session_state.lm["app.sidebar_page_select_radio_1"],
-                st.session_state.lm["app.sidebar_page_select_radio_2"], 
-                st.session_state.lm["app.sidebar_page_select_radio_3"], 
-                st.session_state.lm["app.sidebar_page_select_radio_4"], 
-                st.session_state.lm["app.sidebar_page_select_radio_5"]
-            ], index=0)
+    try:
+        page = st.sidebar.radio(st.session_state.lm["app.sidebar_page_select_radio"],
+                [
+                    st.session_state.lm["app.sidebar_page_select_radio_1"],
+                    st.session_state.lm["app.sidebar_page_select_radio_2"], 
+                    st.session_state.lm["app.sidebar_page_select_radio_3"], 
+                    st.session_state.lm["app.sidebar_page_select_radio_4"], 
+                    st.session_state.lm["app.sidebar_page_select_radio_5"]
+                ], index=0)
 
-    if page == st.session_state.lm["app.sidebar_page_select_radio_1"]:
-        home()
-    elif page == st.session_state.lm["app.sidebar_page_select_radio_2"]:
-        record()
-    elif page == st.session_state.lm["app.sidebar_page_select_radio_3"]:
-        details()
-    elif page == st.session_state.lm["app.sidebar_page_select_radio_4"]:
-        analysis()
-    elif page == st.session_state.lm["app.sidebar_page_select_radio_5"]:
-        tables()
+        if page == st.session_state.lm["app.sidebar_page_select_radio_1"]:
+            home()
+        elif page == st.session_state.lm["app.sidebar_page_select_radio_2"]:
+            record()
+        elif page == st.session_state.lm["app.sidebar_page_select_radio_3"]:
+            details()
+        elif page == st.session_state.lm["app.sidebar_page_select_radio_4"]:
+            analysis()
+        elif page == st.session_state.lm["app.sidebar_page_select_radio_5"]:
+            tables()
+    except Exception as e:
+        st.error(st.session_state.lm["app.web_app_error_text"].format(ERROR=str(e)))
+        st.exception(e)
         
     
 

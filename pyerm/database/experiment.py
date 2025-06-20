@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.5
+# Version: 0.3.8
 
 import os
 import typing
@@ -150,7 +150,7 @@ class Experiment:
         rst_dict : typing.Dict[str, typing.Any]
             The result dictionary, contains the result of the experiment, such as {'score1': 1, 'score2': 2}
         image_dict : typing.Dict[str, typing.Union[Image.Image, str, bytearray, bytes]], optional
-            The image dictionary, contains the image data of the experiment, such as {'image1': Image.open('1.png'), 'image2': '2.png'}, by default no image
+            The image dictionary, contains the image data of the experiment, such as {'image1': Image.open('1.png'), 'image2': '2.png', 'image3': img_base64_str}, by default no image
         end_time : float, optional
             The end timestamp of the experiment, by default None, which means the current time, "" means the end time is empty
         useful_time_cost : float, optional
