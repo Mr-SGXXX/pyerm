@@ -349,6 +349,7 @@
         
             <data_id_select>数据设置:</data_id_select>
             <data_index>当前设置</data_index>
+            <select_function_title>**快速备注操作**</select_function_title>
             <remark_data_checkbox>备注此数据参数设置</remark_data_checkbox>
             <remark_data_input>设置或更改当前数据设置的备注名称。_为空表示删除备注名称。_</remark_data_input>
             <remark_data_button>确认</remark_data_button>
@@ -358,18 +359,24 @@
         
             <remark_max_score_checkbox>备注最高分实验</remark_max_score_checkbox>
             <remark_max_score_select>选择基于哪个分数指标进行备注:</remark_max_score_select>
+            <remark_max_score_type_select>选择基于哪种分数类型进行备注:</remark_max_score_type_select>
             <remark_max_score_all_button>备注当前任务所有设置的实验</remark_max_score_all_button>
             <remark_max_score_cur_button>仅备注当前设置</remark_max_score_cur_button>
+            <remark_max_score_setting_checkbox>备注方法与数据集的最高分设置</remark_max_score_setting_checkbox>
+            <remark_max_score_setting_button>备注当前方法与数据集设置</remark_max_score_setting_button>
         
             <remark_min_score_checkbox>备注最低分实验</remark_min_score_checkbox>
             <remark_min_score_select>选择基于哪个分数指标进行备注:</remark_min_score_select>
+            <remark_min_score_type_select>选择基于哪种分数类型进行备注:</remark_min_score_type_select>
             <remark_min_score_all_button>备注当前任务所有设置的实验</remark_min_score_all_button>
             <remark_min_score_cur_button>仅备注当前设置</remark_min_score_cur_button>
+            <remark_min_score_setting_checkbox>备注方法与数据集的最低分设置</remark_min_score_setting_checkbox>
+            <remark_min_score_setting_button>备注当前方法与数据集设置</remark_min_score_setting_button>
         
-            <clear_remark_checkbox>清除备注</clear_remark_checkbox>
-            <clear_remark_warn>**警告**：此操作将清除所有备注名称，且无法撤销。</clear_remark_warn>
-            <clear_remark_all_button>清除当前任务的所有备注</clear_remark_all_button>
-            <clear_remark_cur_button>清除当前设置的备注</clear_remark_cur_button>
+            <clear_remark_checkbox>清除实验备注</clear_remark_checkbox>
+            <clear_remark_warn>**警告**：此操作将清除所有实验备注名称，且无法撤销。</clear_remark_warn>
+            <clear_remark_all_button>清除当前任务的所有实验备注</clear_remark_all_button>
+            <clear_remark_cur_button>清除当前设置的实验备注</clear_remark_cur_button>
         </select_setting>
         
         <show_images>

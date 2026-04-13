@@ -154,6 +154,7 @@ def details():
                             st.write(st.session_state.lm["details.experiment_data_remark"].format(DATA_REMARK_NAME=data_remark_name))
                         # data_info.drop(columns=['remark'], inplace=True)
                         data_info.index = [st.session_state.lm["details.experiment_data_index"]]
+                        cols = [c for c in data_info.columns if c != 'remark']
                         df_data = data_info[cols].astype(str).transpose()
                         st.dataframe(df_data, use_container_width=True)
                 else:

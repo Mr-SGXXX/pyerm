@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.8
+# Version: 0.3.9
 
 from time import time
 import pandas as pd
@@ -147,25 +147,25 @@ def split_result_info(result_info:pd.DataFrame):
     return result_info[columns_keep], image_dict
 
 
-def experiment_id2remark_name(db, experiment_id):
+def experiment_id2remark_name(db, experiment_id, default_id_as_remark=True):
     task, remark_name = db['experiment_list'].select('task', 'remark', where=f'id={experiment_id}')[0]
-    return remark_name if remark_name else f"{task}_{experiment_id}"
+    return remark_name if remark_name or not default_id_as_remark else f"{task}_{experiment_id}"
 
-def method_id2remark_name(db, method, method_id):
+def method_id2remark_name(db, method, method_id, default_id_as_remark=True):
     if f'method_{method}' not in db.table_names and f'method_{method}' not in db.view_names:
         return f"{method_id}"
     if not (isinstance(method_id, int) and method_id > 0):
         return f"{method_id}"
     remark_name = db[f'method_{method}'].select('remark', where=f'method_id={method_id}')[0][0]
-    return remark_name if remark_name else f"{method_id}"
+    return remark_name if remark_name or not default_id_as_remark else f"{method_id}"
 
-def data_id2remark_name(db, data, data_id):
+def data_id2remark_name(db, data, data_id, default_id_as_remark=True):
     if f'data_{data}' not in db.table_names and f'data_{data}' not in db.view_names:
         return f"{data_id}"
     if not (isinstance(data_id, int) and data_id > 0):
         return f"{data_id}"
     remark_name = db[f'data_{data}'].select('remark', where=f'data_id={data_id}')[0][0]
-    return remark_name if remark_name else f"{data_id}"
+    return remark_name if remark_name or not default_id_as_remark else f"{data_id}"
 
 def experiment_remark_name2id(db, remark_name):
     try:

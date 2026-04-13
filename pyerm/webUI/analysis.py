@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.8
+# Version: 0.3.9
 
 import pandas as pd
 import streamlit as st
@@ -270,27 +270,52 @@ def select_setting(db:Database):
             
     with cols[0]:
         same_setting_id_sql = f"SELECT id FROM experiment_list WHERE method='{method}' AND method_id={method_id} AND data='{dataset}' AND data_id={dataset_id} AND task='{task}' AND status='finished'"
-        if st.checkbox(st.session_state.lm["analysis.select_setting.remark_max_score_checkbox"], key='remark_max_experiment'):
-            score_columns = [col for col in db[f'result_{task}'].columns if not col.startswith("image_") and not col=="experiment_id"]
-            score_column = st.selectbox(st.session_state.lm["analysis.select_setting.remark_max_score_select"], score_columns, key='score_column_max')
-            if st.button(st.session_state.lm["analysis.select_setting.remark_max_score_all_button"], key='confirm_remark_max_all'):
-                auto_remark_all_settings_for_task(db, task, score_column, 'max')
-                st.rerun()
-            if st.button(st.session_state.lm["analysis.select_setting.remark_max_score_cur_button"], key='confirm_remark_max_current'):
-                auto_remark_single_setting(db, task, method, method_id, dataset, dataset_id, same_setting_id_sql, score_column, 'max')
-                st.rerun()
+        selected_function = st.radio(st.session_state.lm["analysis.select_setting.select_function_title"],
+                [
+                    st.session_state.lm["analysis.select_setting.remark_max_score_checkbox"],
+                    st.session_state.lm["analysis.select_setting.remark_min_score_checkbox"],
+                    st.session_state.lm["analysis.select_setting.clear_remark_checkbox"]
+                ], index=0)
+        st.write("---")
+        if selected_function == st.session_state.lm["analysis.select_setting.remark_max_score_checkbox"]:
+            if st.checkbox(st.session_state.lm["analysis.select_setting.remark_max_score_setting_checkbox"], key='remark_max_experiment_setting'):
+                score_columns = [col for col in db[f'result_{task}'].columns if not col.startswith("image_") and not col=="experiment_id"]
+                score_column = st.selectbox(st.session_state.lm["analysis.select_setting.remark_max_score_select"], score_columns, key='score_column_max')
+                score_types = ['Max', 'Min', 'Avg', 'Std', 'Median']
+                score_type = st.selectbox(st.session_state.lm["analysis.select_setting.remark_max_score_type_select"], score_types, index=0, key='score_type_max')
+                if st.button(st.session_state.lm["analysis.select_setting.remark_max_score_setting_button"], key='confirm_remark_max_setting'):
+                    auto_remark_setting_for_method_and_data(db, task, method, dataset, score_column, score_type, 'max' if score_type != 'std' else 'min')
+                    st.rerun()
+            else:
+                score_columns = [col for col in db[f'result_{task}'].columns if not col.startswith("image_") and not col=="experiment_id"]
+                score_column = st.selectbox(st.session_state.lm["analysis.select_setting.remark_max_score_select"], score_columns, key='score_column_max')
+                if st.button(st.session_state.lm["analysis.select_setting.remark_max_score_all_button"], key='confirm_remark_max_all'):
+                    auto_remark_all_settings_for_task(db, task, score_column, 'max')
+                    st.rerun()
+                if st.button(st.session_state.lm["analysis.select_setting.remark_max_score_cur_button"], key='confirm_remark_max_current'):
+                    auto_remark_single_setting(db, task, method, method_id, dataset, dataset_id, score_column, 'max')
+                    st.rerun()
                 
-        if st.checkbox(st.session_state.lm["analysis.select_setting.remark_min_score_checkbox"], key='remark_min_experiment'):
-            score_columns = [col for col in db[f'result_{task}'].columns if not col.startswith("image_") and not col=="experiment_id"]
-            score_column = st.selectbox(st.session_state.lm["analysis.select_setting.remark_min_score_select"], score_columns, key='score_column_min')
-            if st.button(st.session_state.lm["analysis.select_setting.remark_min_score_all_button"], key='confirm_remark_min_all'):
-                auto_remark_all_settings_for_task(db, task, score_column, 'min')
-                st.rerun()
-            if st.button(st.session_state.lm["analysis.select_setting.remark_min_score_cur_button"], key='confirm_remark_min_current'):
-                auto_remark_single_setting(db, task, method, method_id, dataset, dataset_id, same_setting_id_sql, score_column, 'min')
-                st.rerun()
+        elif selected_function == st.session_state.lm["analysis.select_setting.remark_min_score_checkbox"]:
+            if st.checkbox(st.session_state.lm["analysis.select_setting.remark_min_score_setting_checkbox"], key='remark_min_experiment_setting'):
+                score_columns = [col for col in db[f'result_{task}'].columns if not col.startswith("image_") and not col=="experiment_id"]
+                score_column = st.selectbox(st.session_state.lm["analysis.select_setting.remark_min_score_select"], score_columns, key='score_column_min')
+                score_types = ['Max', 'Min', 'Avg', 'Std', 'Median']
+                score_type = st.selectbox(st.session_state.lm["analysis.select_setting.remark_min_score_type_select"], score_types, index=0, key='score_type_min')
+                if st.button(st.session_state.lm["analysis.select_setting.remark_min_score_setting_button"], key='confirm_remark_min_setting'):
+                    auto_remark_setting_for_method_and_data(db, task, method, dataset, score_column, score_type, 'min' if score_type != 'std' else 'max')
+                    st.rerun()
+            else:
+                score_columns = [col for col in db[f'result_{task}'].columns if not col.startswith("image_") and not col=="experiment_id"]
+                score_column = st.selectbox(st.session_state.lm["analysis.select_setting.remark_min_score_select"], score_columns, key='score_column_min')
+                if st.button(st.session_state.lm["analysis.select_setting.remark_min_score_all_button"], key='confirm_remark_min_all'):
+                    auto_remark_all_settings_for_task(db, task, score_column, 'min')
+                    st.rerun()
+                if st.button(st.session_state.lm["analysis.select_setting.remark_min_score_cur_button"], key='confirm_remark_min_current'):
+                    auto_remark_single_setting(db, task, method, method_id, dataset, dataset_id, same_setting_id_sql, score_column, 'min')
+                    st.rerun()
                  
-        if st.checkbox(st.session_state.lm["analysis.select_setting.clear_remark_checkbox"], key='clear_remark'):
+        elif selected_function == st.session_state.lm["analysis.select_setting.clear_remark_checkbox"]:
             st.write(st.session_state.lm["analysis.select_setting.clear_remark_warn"])
             if st.button(st.session_state.lm["analysis.select_setting.clear_remark_all_button"], key='confirm_clear_remark'):
                 db[f'experiment_list'].update(where=f'task="{task}"', remark=None)
@@ -468,7 +493,7 @@ def multi_setting_plot(db, task, selected_settings, selected_metric, plot_type):
     for i, setting in enumerate(selected_settings):
         _, same_ids = get_result_statistics(db, task, setting[0], method_remark_name2id(db, setting[0], setting[1]), setting[2], data_remark_name2id(db, setting[2], setting[3]))
         if not col_name_list == '':
-            plot_data[x_label].append(col_names[i])
+            str_setting = None
         else:
             str_setting = f'{setting[0]}~{method_id2remark_name(db, setting[0], setting[1])}~{setting[2]}~{data_id2remark_name(db, setting[2], setting[3])}'
             if setting[0] not in used_setting_names_counts :
@@ -480,12 +505,12 @@ def multi_setting_plot(db, task, selected_settings, selected_metric, plot_type):
         if plot_type == 'Boxplot' or plot_type == 'Violinplot':
             for id in same_ids:
                 result = result_table.select(selected_metric, where=f'experiment_id={id}')[0][0]
-                plot_data[x_label].append(setting_name_dict[str_setting])
+                plot_data[x_label].append(setting_name_dict[str_setting] if str_setting else col_names[i])
                 plot_data[y_label].append(result)
         elif plot_type == 'Lineplot' or plot_type == 'Barplot':
             result_info = get_result_statistics_by_ids(db, task, same_ids)
             result = result_info.loc[value_type][selected_metric]
-            plot_data[x_label].append(setting_name_dict[str_setting])
+            plot_data[x_label].append(setting_name_dict[str_setting] if str_setting else col_names[i])
             plot_data[y_label].append(result)
     
     
@@ -514,7 +539,7 @@ def multi_setting_plot(db, task, selected_settings, selected_metric, plot_type):
         mime="image/png"
     )
             
-def auto_remark_all_settings_for_task(db, task, score_column, type_flag:typing.Literal[f'max', f'min']='max'):
+def auto_remark_all_settings_for_task(db:Database, task, score_column, type_flag:typing.Literal[f'max', f'min']='max'):
     all_setting_sql = f"SELECT DISTINCT method, method_id, data, data_id FROM experiment_list WHERE task='{task}'"
     all_settings = db.conn.execute(all_setting_sql).fetchall()
     for setting in all_settings:
@@ -549,6 +574,58 @@ def auto_remark_single_setting(db, task, method, method_id, dataset, dataset_id,
         db.conn.commit()
     # else:
     #     st.error(st.session_state.lm["analysis.auto_remark_single_setting_failed_text"])
+
+def auto_remark_setting_for_method_and_data(db:Database, task, method, dataset, score_column, score_type, type_flag:typing.Literal[f'max', f'min']='max'):
+    target_method_id = target_data_id = -1
+    target_method_remark = target_data_remark = None
+    cur_target_value = float('inf') if type_flag == 'min' else float('-inf')
+    if score_type == 'std':
+        remark_type = 'best' if type_flag == 'min' else 'worst'
+    else:
+        remark_type = 'best' if type_flag == 'max' else 'worst'
+    remark_content = f"{method}-{dataset}-{score_column}-{score_type}-{remark_type}"
+
+    if f"method_{method}" in db.table_names:
+        method_id_sql = f'SELECT DISTINCT experiment_list.method_id, method_{method}.remark FROM \
+            experiment_list INNER JOIN method_{method} ON experiment_list.method_id = method_{method}.method_id \
+            WHERE task = "{task}" AND method = "{method}" AND data = "{dataset}" AND status = "finished"'
+        method_ids = {m[0]:m[1] for m in db.conn.execute(method_id_sql).fetchall()}
+    else:
+        method_id_sql = f'SELECT DISTINCT method_id FROM experiment_list WHERE task = "{task}" AND method = "{method}" AND data = "{dataset}"'
+        method_ids = {m[0]:None for m in db.conn.execute(method_id_sql).fetchall()}
+    for method_id, method_remark_name in method_ids.items():
+        dataset_id_sql = f'SELECT DISTINCT data_id FROM experiment_list WHERE task = "{task}" AND method = "{method}" AND method_id = "{method_id}" AND data = "{dataset}"  AND status = "finished"'
+        dataset_ids = {d[0]:data_id2remark_name(db, dataset, d[0], default_id_as_remark=False) for d in db.conn.execute(dataset_id_sql).fetchall()}
+        for dataset_id, data_remark_name in dataset_ids.items():
+            result_statistics, _ = get_result_statistics(db, task, method, method_id, dataset, dataset_id)
+            target_value = result_statistics.at[score_type, score_column]
+            if (type_flag == 'max' and target_value > cur_target_value) or (type_flag == 'min' and target_value < cur_target_value):
+                cur_target_value = target_value
+                target_method_id = method_id
+                target_method_remark = method_remark_name.replace(remark_content, '') if method_remark_name else None
+                if method_remark_name and remark_content in method_remark_name:
+                    db[f'method_{method}'].update(where=f'method_id={method_id}', remark=target_method_remark)
+                target_data_id = dataset_id
+                target_data_remark = data_remark_name.replace(remark_content, '') if data_remark_name else None
+                if data_remark_name and remark_content in data_remark_name:
+                    db[f'data_{dataset}'].update(where=f'data_id={dataset_id}', remark=target_data_remark)
+
+              
+    if target_method_id != -1:
+        if target_method_remark is None:
+            target_method_remark = remark_content
+        else:
+            target_method_remark = f"{target_method_remark}_{remark_content}"
+
+        db[f'method_{method}'].update(where=f'method_id={target_method_id}', remark=target_method_remark)
+
+    if target_data_id != -1:
+        if target_data_remark is None:
+            target_data_remark = remark_content
+        else:
+            target_data_remark = f"{target_data_remark}_{remark_content}"
+
+        db[f'data_{dataset}'].update(where=f'data_id={target_data_id}', remark=target_data_remark)
 
 def export_experiments_of_same_setting_as_str(db, same_setting_ids, task, method, method_id, data, data_id):
     def detect_experiment_info(experiment_id):

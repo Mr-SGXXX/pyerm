@@ -349,6 +349,7 @@
         
             <data_id_select>Data Setting:</data_id_select>
             <data_index>Current Setting</data_index>
+            <select_function_title>**Rapid Remark Functions**</select_function_title>
             <remark_data_checkbox>Remark this data parameter setting</remark_data_checkbox>
             <remark_data_input>Set or change a remark name for current data setting. _Empty means delete remark name._</remark_data_input>
             <remark_data_button>Confirm</remark_data_button>
@@ -358,18 +359,24 @@
         
             <remark_max_score_checkbox>Remark max score experiment</remark_max_score_checkbox>
             <remark_max_score_select>Select the score metric to remark based on:</remark_max_score_select>
+            <remark_max_score_select>Select the score type to remark based on:</remark_max_score_select>
             <remark_max_score_all_button>Remark All Recorded Settings of Current Task</remark_max_score_all_button>
             <remark_max_score_cur_button>Remark Only Current Setting</remark_max_score_cur_button>
+            <remark_max_score_setting_checkbox>Remark The Best Setting Of Method And Dataset</remark_max_score_setting_checkbox>
+            <remark_max_score_setting_button>Remark Current Method and Dataset's Settings</remark_max_score_setting_button>
         
             <remark_min_score_checkbox>Remark min score experiment</remark_min_score_checkbox>
             <remark_min_score_select>Select the score metric to remark based on:</remark_min_score_select>
+            <remark_min_score_select>Select the score type to remark based on:</remark_min_score_select>
             <remark_min_score_all_button>Remark All Recorded Settings of Current Task</remark_min_score_all_button>
             <remark_min_score_cur_button>Remark Only Current Setting</remark_min_score_cur_button>
+            <remark_min_score_setting_checkbox>Remark The Worst Setting Of Method And Dataset</remark_min_score_setting_checkbox>
+            <remark_min_score_setting_button>Remark Current Method and Dataset's Settings</remark_min_score_setting_button>
         
-            <clear_remark_checkbox>Clear Remarks</clear_remark_checkbox>
-            <clear_remark_warn>**Warning**: This operation will clear all remark names, which is irreversible.</clear_remark_warn>
-            <clear_remark_all_button>Clear All Remarks of Current Task</clear_remark_all_button>
-            <clear_remark_cur_button>Clear Current Setting Remarks</clear_remark_cur_button>
+            <clear_remark_checkbox>Clear Experiment Remarks</clear_remark_checkbox>
+            <clear_remark_warn>**Warning**: This operation will clear all experiment remark names, which is irreversible.</clear_remark_warn>
+            <clear_remark_all_button>Clear All Experiment Remarks of Current Task</clear_remark_all_button>
+            <clear_remark_cur_button>Clear Experiment Remarks Of Current Setting</clear_remark_cur_button>
         </select_setting>
 
         <show_images>
