@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Version: 0.3.8
+# Version: 0.3.9
 from setuptools import setup, find_packages
 
 with open("README.md", "r", encoding="utf-8") as f:
@@ -28,7 +28,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name='pyerm',
-    version='0.3.8',
+    version='0.3.9',
     license='MIT',
     author='Yuxuan Shao',
     author_email='yx_shao@qq.com',
